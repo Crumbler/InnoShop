@@ -13,6 +13,12 @@ namespace UserService.Application.Services
     {
         public async Task CreateUserAsync(CreateUserReq req, UserCreationOptions options)
         {
+            bool isEmailAvailable = await userRepository.CheckEmailAvailableAsync(req.Email);
+            if (!isEmailAvailable)
+            {
+                throw new EmailInUseException(req.Email);
+            }
+
             (string hash, string salt) = passwordHelper.HashPassword(req.Password);
 
             var user = new User()
@@ -55,6 +61,12 @@ namespace UserService.Application.Services
 
             if (req.Email is not null)
             {
+                bool isEmailAvailable = await userRepository.CheckEmailAvailableAsync(req.Email);
+                if (!isEmailAvailable)
+                {
+                    throw new EmailInUseException(req.Email);
+                }
+
                 user.Email = req.Email;
             }
 

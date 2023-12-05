@@ -8,5 +8,6 @@ namespace UserService.Domain.Repositories
         public Task UpdateUserAsync(User user);
         public Task<User?> GetUserAsync(int id);
         public Task DeleteUserAsync(int id);
+        public Task<bool> CheckEmailAvailableAsync(string email);
     }
 }
