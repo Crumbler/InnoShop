@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using UserService.Infrastructure.Data;
+
 namespace UserService
 {
     public class Program
@@ -12,6 +15,10 @@ namespace UserService
             {
                 builder.Services.AddSwaggerGen();
             }
+
+            builder.Services.AddDbContext<UserServiceDbContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration["ConnectionStrings:UserServiceConnection"]));
 
             var app = builder.Build();
 

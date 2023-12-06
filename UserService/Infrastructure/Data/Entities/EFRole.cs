@@ -11,16 +11,16 @@ namespace UserService.Infrastructure.Data.Entities
         public int RoleId { get; set; }
 
         [MaxLength(20)]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         public bool HasAdminPrivileges { get; set; }
 
-        public EFRole(Role role)
+        public static EFRole FromRole(Role role) => new()
         {
-            RoleId = role.RoleId;
-            Name = role.Name;
-            HasAdminPrivileges = role.HasAdminPrivileges;
-        }
+            RoleId = role.RoleId,
+            Name = role.Name,
+            HasAdminPrivileges = role.HasAdminPrivileges
+        };
 
         public Role ToRole() => new()
         { 

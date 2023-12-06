@@ -13,25 +13,25 @@ namespace UserService.Infrastructure.Data.Entities
         public int UserId { get; set; }
 
         [MaxLength(30)]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         [MaxLength(30)]
-        public string Email { get; set; }
-        public EFRole Role { get; set; }
+        public required string Email { get; set; }
+        public required EFRole Role { get; set; }
         public DateTime CreatedOn { get; set; }
-        public string PasswordHash { get; set; }
-        public string PasswordSalt { get; set; }
+        public required string PasswordHash { get; set; }
+        public required string PasswordSalt { get; set; }
 
-        public EFUser(User user)
+        public static EFUser FromUser(User user) => new()
         {
-            UserId = user.UserId;
-            Name = user.Name;
-            Email = user.Email;
-            Role = new EFRole(user.Role);
-            CreatedOn = user.CreatedOn;
-            PasswordHash = user.PasswordHash;
-            PasswordSalt = user.PasswordSalt;
-        }
+            UserId = user.UserId,
+            Name = user.Name,
+            Email = user.Email,
+            Role = EFRole.FromRole(user.Role),
+            CreatedOn = user.CreatedOn,
+            PasswordHash = user.PasswordHash,
+            PasswordSalt = user.PasswordSalt
+        };
 
         public User ToUser() => new()
         {

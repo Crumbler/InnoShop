@@ -17,7 +17,7 @@ namespace UserService.Infrastructure.Repositories
 
         public async Task CreateUserAsync(User user)
         {
-            await dbContext.Users.AddAsync(new EFUser(user));
+            await dbContext.Users.AddAsync(EFUser.FromUser(user));
 
             await dbContext.SaveChangesAsync();
         }
@@ -34,7 +34,7 @@ namespace UserService.Infrastructure.Repositories
 
         public async Task UpdateUserAsync(User user)
         {
-            var efUser = new EFUser(user);
+            var efUser = EFUser.FromUser(user);
             dbContext.Users.Update(efUser);
 
             await dbContext.SaveChangesAsync();
