@@ -1,5 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using System;
+using UserService.Application.Interfaces;
+using UserService.Application.Options;
+using UserService.Application.Services;
+using UserService.Domain.Repositories;
 using UserService.Infrastructure.Data;
+using UserService.Infrastructure.Repositories;
 
 namespace UserService
 {
@@ -16,9 +23,31 @@ namespace UserService
                 builder.Services.AddSwaggerGen();
             }
 
+            string connectionString = builder.Configuration["ConnectionStrings:UserServiceConnection"] ??
+                throw new Exception("No connection string in configuration.");
+
             builder.Services.AddDbContext<UserServiceDbContext>(options =>
-                options.UseSqlServer(
-                    builder.Configuration["ConnectionStrings:UserServiceConnection"]));
+                options.UseSqlServer(connectionString));
+
+            var optionsBuilder = new DbContextOptionsBuilder<UserServiceDbContext>();
+            optionsBuilder.UseSqlServer(connectionString);
+
+            using (var dbContext = new UserServiceDbContext(optionsBuilder.Options))
+            {
+                string initialRoleName = builder.Configuration["Users:InitialUserRoleName"] ??
+                    throw new Exception("No initial role name in configuration.");
+
+                DatabaseHelper.SetupDatabaseAndSeedData(dbContext, initialRoleName);
+                var options = new UserCreationOptions(DatabaseHelper.GetRole(dbContext, initialRoleName));
+
+                builder.Services.AddSingleton(Options.Create(options));
+            }
+
+            builder.Services.AddScoped<IUserRepository, EFUserRepository>();
+            
+            builder.Services.AddSingleton<IPasswordHelper, PasswordHelper>();
+
+            builder.Services.AddScoped<IUserService, Application.Services.UserService>();
 
             var app = builder.Build();
 
