@@ -25,7 +25,7 @@ namespace UserService.Application.Services
             {
                 Name = req.Name,
                 Email = req.Email,
-                Role = options.GetInitialRole(),
+                Role = options.InitialRole,
                 PasswordHash = hash,
                 PasswordSalt = salt
             };
