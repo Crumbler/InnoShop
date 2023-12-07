@@ -29,7 +29,11 @@ namespace UserService.Infrastructure.Repositories
 
         public async Task<User?> GetUserAsync(int id)
         {
-            return (await dbContext.Users.SingleOrDefaultAsync(u => u.UserId == id))?.ToUser();
+            EFUser? user = await dbContext.Users
+                .Include(u => u.Role)
+                .SingleOrDefaultAsync(u => u.UserId == id);
+
+            return user?.ToUser();
         }
 
         public async Task UpdateUserAsync(User user)
