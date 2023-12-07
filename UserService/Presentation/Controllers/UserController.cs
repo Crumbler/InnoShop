@@ -6,22 +6,15 @@ using UserService.Domain.Exceptions;
 namespace UserService.Presentation.Controllers
 {
     [ApiController]
-    [Route("Users")]
+    [Route("users")]
     public class UserController(IUserService userService) : Controller
     {
         [HttpGet("{id:int}")]
-        [ProducesResponseType<string>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
         [ProducesResponseType<UserDTO>(StatusCodes.Status200OK)]
-        public async Task<ActionResult> GetUser([FromRoute] int id)
+        public async Task<ActionResult<UserDTO>> GetUser([FromRoute] int id)
         {
-            try
-            {
-                return Ok(await userService.GetUserAsync(id));
-            }
-            catch (UserNotFoundException e)
-            {
-                return NotFound(e.Message);
-            }
+            return Ok(await userService.GetUserAsync(id));
         }
     }
 }

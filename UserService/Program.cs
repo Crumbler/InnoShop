@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using System;
 using UserService.Application.Interfaces;
 using UserService.Application.Options;
 using UserService.Application.Services;
 using UserService.Domain.Repositories;
 using UserService.Infrastructure.Data;
 using UserService.Infrastructure.Repositories;
+using UserService.Presentation.Handlers;
 
 namespace UserService
 {
@@ -49,6 +49,9 @@ namespace UserService
 
             builder.Services.AddScoped<IUserService, Application.Services.UserService>();
 
+            builder.Services.AddProblemDetails();
+            builder.Services.AddExceptionHandler<ExceptionToProblemDetailsHandler>();
+
             var app = builder.Build();
 
             if (app.Environment.IsDevelopment())
@@ -56,6 +59,8 @@ namespace UserService
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.UseExceptionHandler();
 
             app.MapControllers();
 
