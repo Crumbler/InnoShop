@@ -26,8 +26,10 @@ namespace UserService
             string connectionString = builder.Configuration["ConnectionStrings:UserServiceConnection"] ??
                 throw new Exception("No connection string in configuration.");
 
-            builder.Services.AddDbContext<UserServiceDbContext>(options =>
-                options.UseSqlServer(connectionString));
+            builder.Services.AddDbContext<UserServiceDbContext>(options => {
+                options.UseSqlServer(connectionString);
+                options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
+            });
 
             var optionsBuilder = new DbContextOptionsBuilder<UserServiceDbContext>();
             optionsBuilder.UseSqlServer(connectionString);
