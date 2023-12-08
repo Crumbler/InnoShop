@@ -11,7 +11,7 @@ namespace UserService.Application.Services
     public class UserService(IUserRepository userRepository, 
         IPasswordHelper passwordHelper) : IUserService
     {
-        public async Task CreateUserAsync(CreateUserReq req, UserCreationOptions options)
+        public async Task<UserDTO> CreateUserAsync(CreateUserReq req, UserCreationOptions options)
         {
             bool isEmailAvailable = await userRepository.CheckEmailAvailableAsync(req.Email);
             if (!isEmailAvailable)
@@ -30,7 +30,9 @@ namespace UserService.Application.Services
                 PasswordSalt = salt
             };
 
-            await userRepository.CreateUserAsync(user);
+            User createdUser = await userRepository.CreateUserAsync(user);
+
+            return new UserDTO(createdUser);
         }
 
         public async Task DeleteUserAsync(int id)

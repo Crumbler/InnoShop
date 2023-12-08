@@ -15,11 +15,15 @@ namespace UserService.Infrastructure.Repositories
             return user != null;
         }
 
-        public async Task CreateUserAsync(User user)
+        public async Task<User> CreateUserAsync(User user)
         {
-            await dbContext.Users.AddAsync(EFUser.FromUser(user));
+            var efUser = EFUser.FromUser(user);
+
+            await dbContext.Users.AddAsync(efUser);
 
             await dbContext.SaveChangesAsync();
+
+            return efUser.ToUser();
         }
 
         public async Task DeleteUserAsync(int id)
