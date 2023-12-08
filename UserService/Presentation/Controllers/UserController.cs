@@ -30,5 +30,14 @@ namespace UserService.Presentation.Controllers
 
             return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
         }
+
+        [HttpDelete("{id:int}")]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<NoContentResult> DeleteUser([FromRoute] int id)
+        {
+            await userService.DeleteUserAsync(id);
+            return NoContent();
+        }
     }
 }
