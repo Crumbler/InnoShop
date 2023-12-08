@@ -12,12 +12,14 @@ namespace UserService.Presentation.Handlers
             int statusCode = exception switch
             {
                 NotFoundException => StatusCodes.Status404NotFound,
+                ConflictException => StatusCodes.Status400BadRequest,
                 _ => StatusCodes.Status400BadRequest
             };
 
             string title = exception switch
             {
                 UserNotFoundException => "User not found",
+                EmailInUseException => "Email in use",
                 _ => "An error occured"
             };
 
