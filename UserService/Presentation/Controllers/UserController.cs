@@ -21,7 +21,8 @@ namespace UserService.Presentation.Controllers
 
         [HttpPost]
         [ProducesResponseType<UserDTO>(StatusCodes.Status201Created)]
-        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+        [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<UserDTO>> CreateUser([FromBody] CreateUserReq req,
             IOptions<UserCreationOptions> options)
         {

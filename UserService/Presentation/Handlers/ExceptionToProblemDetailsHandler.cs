@@ -12,7 +12,7 @@ namespace UserService.Presentation.Handlers
             int statusCode = exception switch
             {
                 NotFoundException => StatusCodes.Status404NotFound,
-                ConflictException => StatusCodes.Status400BadRequest,
+                ConflictException => StatusCodes.Status409Conflict,
                 _ => StatusCodes.Status400BadRequest
             };
 
