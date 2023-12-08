@@ -10,9 +10,7 @@ namespace UserService.Infrastructure.Repositories
     {
         public async Task<bool> CheckEmailAvailableAsync(string email)
         {
-            EFUser? user = await dbContext.Users.SingleOrDefaultAsync(u => u.Email == email);
-            
-            return user != null;
+            return !await dbContext.Users.AnyAsync(u => u.Email == email);
         }
 
         public async Task<User> CreateUserAsync(User user)
