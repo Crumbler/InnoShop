@@ -39,5 +39,16 @@ namespace UserService.Presentation.Controllers
             await userService.DeleteUserAsync(id);
             return NoContent();
         }
+
+        [HttpPut("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+        public async Task<NoContentResult> UpdateUser([FromRoute] int id,
+            [FromBody] UpdateUserReq req)
+        {
+            await userService.UpdateUserAsync(id, req);
+            return NoContent();
+        }
     }
 }
