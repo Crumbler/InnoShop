@@ -4,11 +4,11 @@ namespace UserService.Application.Requests
 {
     public class UpdateUserReq
     {
-        [MaxLength(30)]
+        [StringLength(maximumLength: 30, MinimumLength = 2)]
         public string? Name { get; set; }
 
         [EmailAddress]
-        [MaxLength(30)]
+        [StringLength(maximumLength: 30, MinimumLength = 8)]
         public string? Email { get; set; }
     }
 }

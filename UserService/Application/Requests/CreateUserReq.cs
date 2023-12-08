@@ -4,13 +4,16 @@ namespace UserService.Application.Requests
 {
     public class CreateUserReq
     {
-        [MaxLength(30)]
+        [StringLength(maximumLength: 30, MinimumLength = 2)]
         public required string Name { get; set; }
 
         [EmailAddress]
-        [MaxLength(30)]
+        [StringLength(maximumLength: 30, MinimumLength = 8)]
         public required string Email { get; set; }
-        [MaxLength(30)]
+
+        [StringLength(maximumLength: 30, MinimumLength = 8)]
+        [RegularExpression(@"^(?=.*[a-zA-Z])(?=.*\d)$",
+            ErrorMessage ="The password must contain only letters of the English alphabet and digits")]
         public required string Password { get; set; }
     }
 }
