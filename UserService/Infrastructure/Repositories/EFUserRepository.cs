@@ -40,8 +40,11 @@ namespace UserService.Infrastructure.Repositories
 
         public async Task UpdateUserAsync(User user)
         {
+            EFUser oldUser = await dbContext.Users.FindAsync(user.UserId) ??
+                throw new Exception("User not found");
+
             var efUser = EFUser.FromUser(user);
-            dbContext.Users.Update(efUser);
+            dbContext.Users.Entry(oldUser).CurrentValues.SetValues(efUser);
 
             await dbContext.SaveChangesAsync();
         }
