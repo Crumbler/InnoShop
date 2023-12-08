@@ -17,7 +17,7 @@ namespace UserService.Infrastructure.Repositories
         {
             var efUser = EFUser.FromUser(user);
 
-            await dbContext.Users.AddAsync(efUser);
+            dbContext.Users.Entry(efUser).State = EntityState.Added;
 
             await dbContext.SaveChangesAsync();
 
