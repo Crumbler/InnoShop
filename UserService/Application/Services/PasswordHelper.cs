@@ -7,12 +7,11 @@ namespace UserService.Application.Services
 {
     public class PasswordHelper : IPasswordHelper
     {
-        public (string hash, string salt) HashPassword(string password)
+        public string HashPassword(string password)
         {
-            string salt = BC.GenerateSalt();
-            string hash = BC.HashPassword(password, salt, true, HashType.SHA384);
+            string hash = BC.EnhancedHashPassword(password, HashType.SHA384);
 
-            return (hash, salt);
+            return hash;
         }
     }
 }

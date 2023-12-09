@@ -2,6 +2,6 @@
 {
     public interface IPasswordHelper
     {
-        (string hash, string salt) HashPassword(string password);
+        public string HashPassword(string password);
     }
 }

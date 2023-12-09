@@ -23,9 +23,6 @@ namespace UserService.Infrastructure.Data.Entities
         [Unicode(false)]
         public required string PasswordHash { get; set; }
 
-        [Unicode(false)]
-        public required string PasswordSalt { get; set; }
-
         public static EFUser FromUser(User user) => new()
         {
             UserId = user.UserId,
@@ -33,8 +30,7 @@ namespace UserService.Infrastructure.Data.Entities
             Email = user.Email,
             Role = EFRole.FromRole(user.Role),
             CreatedOn = user.CreatedOn,
-            PasswordHash = user.PasswordHash,
-            PasswordSalt = user.PasswordSalt
+            PasswordHash = user.PasswordHash
         };
 
         public User ToUser() => new()
@@ -44,8 +40,7 @@ namespace UserService.Infrastructure.Data.Entities
             Email = Email,
             Role = Role.ToRole(),
             CreatedOn = CreatedOn,
-            PasswordHash = PasswordHash,
-            PasswordSalt = PasswordSalt
+            PasswordHash = PasswordHash
         };
     }
 }

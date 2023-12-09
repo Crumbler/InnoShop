@@ -8,6 +8,5 @@
         public required Role Role { get; set; }
         public DateTime CreatedOn { get; init; } = DateTime.UtcNow;
         public required string PasswordHash { get; set; }
-        public required string PasswordSalt { get; set; }
     }
 }

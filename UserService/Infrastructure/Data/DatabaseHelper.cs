@@ -31,7 +31,7 @@ namespace UserService.Infrastructure.Data
             };
 
             var pHelper = new PasswordHelper();
-            (string hash, string salt) = pHelper.HashPassword("12345");
+            string hash = pHelper.HashPassword("12345");
 
             var users = new EFUser[]
             {
@@ -41,7 +41,6 @@ namespace UserService.Infrastructure.Data
                     Email = "johndoe@mail.com",
                     CreatedOn = DateTime.UtcNow,
                     PasswordHash = hash,
-                    PasswordSalt = salt,
                     Role = roleAdmin
                 },
                 new()
@@ -50,7 +49,6 @@ namespace UserService.Infrastructure.Data
                     Email = "ChristopherBDavis@rhyta.com",
                     CreatedOn = DateTime.UtcNow,
                     PasswordHash = hash,
-                    PasswordSalt = salt,
                     Role = roleRegular
                 },
                 new()
@@ -59,7 +57,6 @@ namespace UserService.Infrastructure.Data
                     Email = "GilbertDGustafson@dayrep.com",
                     CreatedOn = DateTime.UtcNow,
                     PasswordHash = hash,
-                    PasswordSalt = salt,
                     Role = roleRegular
                 }
             };

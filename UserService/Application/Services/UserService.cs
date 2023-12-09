@@ -19,15 +19,14 @@ namespace UserService.Application.Services
                 throw new EmailInUseException(req.Email);
             }
 
-            (string hash, string salt) = passwordHelper.HashPassword(req.Password);
+            string hash = passwordHelper.HashPassword(req.Password);
 
             var user = new User()
             {
                 Name = req.Name,
                 Email = req.Email,
                 Role = options.InitialRole,
-                PasswordHash = hash,
-                PasswordSalt = salt
+                PasswordHash = hash
             };
 
             User createdUser = await userRepository.CreateUserAsync(user);
