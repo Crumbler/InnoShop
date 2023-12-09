@@ -13,5 +13,10 @@ namespace UserService.Application.Services
 
             return hash;
         }
+
+        public bool IsValid(string password, string hash)
+        {
+            return BC.EnhancedVerify(password, hash, HashType.SHA384);
+        }
     }
 }
