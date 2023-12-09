@@ -13,8 +13,13 @@ namespace UserService.Presentation.Handlers
             {
                 NotFoundException => StatusCodes.Status404NotFound,
                 ConflictException => StatusCodes.Status409Conflict,
-                _ => StatusCodes.Status400BadRequest
+                _ => 0
             };
+
+            if (statusCode == 0)
+            {
+                return false;
+            }
 
             string title = exception switch
             {
