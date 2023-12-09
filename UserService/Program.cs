@@ -36,7 +36,8 @@ namespace UserService
 
             using (var dbContext = new UserServiceDbContext(optionsBuilder.Options))
             {
-                string initialRoleName = builder.Configuration["Users:InitialUserRoleName"] ??
+                string initialRoleName = 
+                    builder.Configuration.GetRequiredSection(UserCreationOptions.Users)[UserCreationOptions.InitialUserRoleName] ??
                     throw new Exception("No initial role name in configuration.");
 
                 DatabaseHelper.SetupDatabaseAndSeedData(dbContext, initialRoleName);
