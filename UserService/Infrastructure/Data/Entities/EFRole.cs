@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using UserService.Domain.Entities;
 
@@ -11,6 +12,7 @@ namespace UserService.Infrastructure.Data.Entities
         public int RoleId { get; set; }
 
         [MaxLength(20)]
+        [Unicode(false)]
         public required string Name { get; set; }
 
         public bool HasAdminPrivileges { get; set; }

@@ -19,7 +19,11 @@ namespace UserService.Infrastructure.Data.Entities
         public required string Email { get; set; }
         public required EFRole Role { get; set; }
         public DateTime CreatedOn { get; set; }
+
+        [Unicode(false)]
         public required string PasswordHash { get; set; }
+
+        [Unicode(false)]
         public required string PasswordSalt { get; set; }
 
         public static EFUser FromUser(User user) => new()
