@@ -1,4 +1,8 @@
-﻿using UserService.Application.DTOs;
+﻿using Microsoft.IdentityModel.Tokens;
+using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using UserService.Application.DTOs;
 using UserService.Application.Interfaces;
 using UserService.Application.Options;
 using UserService.Application.Requests;
@@ -72,6 +76,40 @@ namespace UserService.Application.Services
             }
 
             await userRepository.UpdateUserAsync(user);
+        }
+
+        public async Task<LoginDTO> Login(LoginReq req, RsaSecurityKey key, JwtSecurityTokenHandler handler)
+        {
+            User user = await userRepository.GetUserByEmailAsync(req.Email) ??
+                throw new InvalidCredentialsException();
+
+            if (!passwordHelper.IsValid(req.Password, user.PasswordHash))
+            {
+                throw new InvalidCredentialsException();
+            }
+
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
+
+            var tokenDescriptor = new SecurityTokenDescriptor()
+            {
+                Expires = DateTime.UtcNow.AddMinutes(10),
+                Audience = "User",
+                Issuer = "UserService",
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new("sub_id", user.UserId.ToString(CultureInfo.InvariantCulture)),
+                    new("admin", user.Role.HasAdminPrivileges.ToString(CultureInfo.InvariantCulture))
+                }),
+                SigningCredentials = credentials
+            };
+
+            var token = handler.CreateToken(tokenDescriptor);
+
+            return new LoginDTO()
+            {
+                UserId = user.UserId,
+                Token = handler.WriteToken(token)
+            };
         }
     }
 }
