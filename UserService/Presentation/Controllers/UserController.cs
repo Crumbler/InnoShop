@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using UserService.Application.DTOs;
 using UserService.Application.Interfaces;
 using UserService.Application.Options;
@@ -12,17 +15,17 @@ namespace UserService.Presentation.Controllers
     public class UserController(IUserService userService) : Controller
     {
         [HttpGet("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-        [ProducesResponseType<UserDTO>(StatusCodes.Status200OK)]
-        public async Task<ActionResult<UserDTO>> GetUser([FromRoute] int id)
+        public async Task<UserDTO> GetUser([FromRoute] int id)
         {
-            return Ok(await userService.GetUserAsync(id));
+            return await userService.GetUserAsync(id);
         }
 
         [HttpPost]
-        [ProducesResponseType<UserDTO>(StatusCodes.Status201Created)]
-        [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<UserDTO>> CreateUser([FromBody] CreateUserReq req,
             IOptions<UserCreationOptions> options)
         {
@@ -31,15 +34,17 @@ namespace UserService.Presentation.Controllers
             return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
         }
 
+        [Authorize]
         [HttpDelete("{id:int}")]
-        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
         public async Task<NoContentResult> DeleteUser([FromRoute] int id)
         {
             await userService.DeleteUserAsync(id);
             return NoContent();
         }
 
+        [Authorize]
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -50,6 +55,17 @@ namespace UserService.Presentation.Controllers
         {
             await userService.UpdateUserAsync(id, req);
             return NoContent();
+        }
+
+        [HttpPost("/login")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+        public async Task<LoginDTO> Login([FromBody] LoginReq req,
+            [FromServices] RsaSecurityKey key,
+            [FromServices] JwtSecurityTokenHandler handler)
+        {
+            return await userService.Login(req, key, handler);
         }
     }
 }
