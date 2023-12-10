@@ -40,7 +40,7 @@ namespace UserService.Infrastructure.Repositories
 
         public async Task<User?> GetUserByEmailAsync(string email)
         {
-            EFUser? user = await dbContext.Users.SingleOrDefaultAsync(u => u.Email == email);
+            EFUser? user = await dbContext.Users.Include(u => u.Role).SingleOrDefaultAsync(u => u.Email == email);
 
             return user?.ToUser();
         }
