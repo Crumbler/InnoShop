@@ -38,6 +38,13 @@ namespace UserService.Infrastructure.Repositories
             return user?.ToUser();
         }
 
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            EFUser? user = await dbContext.Users.SingleOrDefaultAsync(u => u.Email == email);
+
+            return user?.ToUser();
+        }
+
         public async Task UpdateUserAsync(User user)
         {
             EFUser oldUser = await dbContext.Users.FindAsync(user.UserId) ??
