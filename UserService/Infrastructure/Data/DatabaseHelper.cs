@@ -31,7 +31,7 @@ namespace UserService.Infrastructure.Data
             };
 
             var pHelper = new PasswordHelper();
-            string hash = pHelper.HashPassword("12345");
+            string hash = pHelper.HashPassword("abc12345");
 
             var users = new EFUser[]
             {
