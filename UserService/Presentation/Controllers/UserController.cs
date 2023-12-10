@@ -12,7 +12,7 @@ namespace UserService.Presentation.Controllers
 {
     [ApiController]
     [Route("users")]
-    public class UserController(IUserService userService) : Controller
+    public class UserController(IUserService userService) : ControllerBase
     {
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -37,6 +37,7 @@ namespace UserService.Presentation.Controllers
         [Authorize]
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
         public async Task<NoContentResult> DeleteUser([FromRoute] int id)
         {
@@ -48,6 +49,7 @@ namespace UserService.Presentation.Controllers
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
         public async Task<NoContentResult> UpdateUser([FromRoute] int id,
