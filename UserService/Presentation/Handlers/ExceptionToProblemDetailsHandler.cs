@@ -11,6 +11,7 @@ namespace UserService.Presentation.Handlers
         {
             int statusCode = exception switch
             {
+                UnauthorizedException => StatusCodes.Status401Unauthorized,
                 NotFoundException => StatusCodes.Status404NotFound,
                 ConflictException => StatusCodes.Status409Conflict,
                 _ => 0
@@ -23,6 +24,7 @@ namespace UserService.Presentation.Handlers
 
             string title = exception switch
             {
+                InvalidCredentialsException => "Invalid credentials",
                 UserNotFoundException => "User not found",
                 EmailInUseException => "Email in use",
                 _ => "An error occured"
