@@ -1,7 +1,4 @@
-﻿using Microsoft.IdentityModel.Tokens;
-using System.Globalization;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+﻿using Microsoft.Extensions.Options;
 using UserService.Application.DTOs;
 using UserService.Application.Interfaces;
 using UserService.Application.Options;
@@ -13,9 +10,10 @@ using UserService.Domain.Repositories;
 namespace UserService.Application.Services
 {
     public class UserService(IUserRepository userRepository, 
-        IPasswordHelper passwordHelper) : IUserService
+        IPasswordHelper passwordHelper, IJwtService jwtService,
+        IOptions<UserCreationOptions> userCreationOptions) : IUserService
     {
-        public async Task<UserDTO> CreateUserAsync(CreateUserReq req, UserCreationOptions options)
+        public async Task<UserDTO> CreateUserAsync(CreateUserReq req)
         {
             bool isEmailAvailable = await userRepository.CheckEmailAvailableAsync(req.Email);
             if (!isEmailAvailable)
@@ -29,7 +27,7 @@ namespace UserService.Application.Services
             {
                 Name = req.Name,
                 Email = req.Email,
-                Role = options.InitialRole,
+                Role = userCreationOptions.Value.InitialRole,
                 PasswordHash = hash
             };
 
@@ -78,7 +76,7 @@ namespace UserService.Application.Services
             await userRepository.UpdateUserAsync(user);
         }
 
-        public async Task<LoginDTO> Login(LoginReq req, RsaSecurityKey key, JwtSecurityTokenHandler handler)
+        public async Task<LoginDTO> Login(LoginReq req)
         {
             User user = await userRepository.GetUserByEmailAsync(req.Email) ??
                 throw new InvalidCredentialsException();
@@ -88,27 +86,10 @@ namespace UserService.Application.Services
                 throw new InvalidCredentialsException();
             }
 
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
-
-            var tokenDescriptor = new SecurityTokenDescriptor()
-            {
-                Expires = DateTime.UtcNow.AddMinutes(10),
-                Audience = "User",
-                Issuer = "UserService",
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new("sub_id", user.UserId.ToString(CultureInfo.InvariantCulture)),
-                    new("admin", user.Role.HasAdminPrivileges.ToString(CultureInfo.InvariantCulture))
-                }),
-                SigningCredentials = credentials
-            };
-
-            var token = handler.CreateToken(tokenDescriptor);
-
             return new LoginDTO()
             {
                 UserId = user.UserId,
-                Token = handler.WriteToken(token)
+                Token = jwtService.GetJwtToken(user)
             };
         }
     }

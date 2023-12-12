@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using UserService.Application.DTOs;
 using UserService.Application.Interfaces;
-using UserService.Application.Options;
 using UserService.Application.Requests;
 using UserService.Presentation.Attributes;
 
@@ -27,10 +23,9 @@ namespace UserService.Presentation.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<UserDTO>> CreateUser([FromBody] CreateUserReq req,
-            IOptions<UserCreationOptions> options)
+        public async Task<ActionResult<UserDTO>> CreateUser([FromBody] CreateUserReq req)
         {
-            UserDTO user = await userService.CreateUserAsync(req, options.Value);
+            UserDTO user = await userService.CreateUserAsync(req);
 
             return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
         }
@@ -66,11 +61,9 @@ namespace UserService.Presentation.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
-        public async Task<LoginDTO> Login([FromBody] LoginReq req,
-            [FromServices] RsaSecurityKey key,
-            [FromServices] JwtSecurityTokenHandler handler)
+        public async Task<LoginDTO> Login([FromBody] LoginReq req)
         {
-            return await userService.Login(req, key, handler);
+            return await userService.Login(req);
         }
 
         [HttpDelete("/logout")]

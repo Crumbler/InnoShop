@@ -96,6 +96,8 @@ namespace UserService
                 throw new Exception("JwtOptions not specified");
             services.AddSingleton(Options.Create(jwtOptions));
 
+            services.AddSingleton<IJwtService, JwtService>();
+
             services.AddScoped<IUserRepository, EFUserRepository>();
 
             services.AddSingleton<JwtSecurityTokenHandler>();
