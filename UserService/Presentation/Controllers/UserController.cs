@@ -39,6 +39,7 @@ namespace UserService.Presentation.Controllers
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
         public async Task<NoContentResult> DeleteUser([FromRoute] int id)
         {
@@ -51,6 +52,7 @@ namespace UserService.Presentation.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
         public async Task<NoContentResult> UpdateUser([FromRoute] int id,
@@ -69,6 +71,15 @@ namespace UserService.Presentation.Controllers
             [FromServices] JwtSecurityTokenHandler handler)
         {
             return await userService.Login(req, key, handler);
+        }
+
+        [HttpDelete("/logout")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public NoContentResult Logout()
+        {
+            Response.Headers.Remove("Authorization");
+
+            return NoContent();
         }
     }
 }
