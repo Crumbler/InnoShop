@@ -52,7 +52,9 @@ namespace UserService
 
             ConfigureDatabase(services, config, environment);
 
-            ConfigureAuthentication(services, config, environment);
+            ConfigureAuthentication(services, config);
+
+            ConfigureEmail(services, config);
 
             services.AddSingleton<IPasswordHelper, PasswordHelper>();
             
@@ -66,7 +68,7 @@ namespace UserService
             ConfigurationManager config, IWebHostEnvironment environment)
         {
             string connectionString = config.GetConnectionString("UserServiceConnection") ??
-                throw new Exception("No connection string in configuration.");
+                throw new Exception("No UserServiceConnection string in configuration.ConnectionStrings.");
 
             services.AddDbContext<UserServiceDbContext>(options => {
                 options.UseSqlServer(connectionString);
@@ -80,7 +82,7 @@ namespace UserService
             {
                 string initialRoleName =
                     config.GetRequiredSection(UserCreationOptions.Users)[UserCreationOptions.InitialUserRoleName] ??
-                    throw new Exception("No initial role name in configuration.");
+                    throw new Exception("No initial user role name in configuration.");
 
                 DatabaseHelper.SetupDatabaseAndSeedData(dbContext, initialRoleName);
                 var options = new UserCreationOptions(DatabaseHelper.GetRole(dbContext, initialRoleName));
@@ -90,7 +92,7 @@ namespace UserService
         }
 
         private static void ConfigureAuthentication(IServiceCollection services,
-            ConfigurationManager config, IWebHostEnvironment environment)
+            ConfigurationManager config)
         {
             services.AddSingleton<IJwtService, JwtService>();
 
@@ -99,7 +101,7 @@ namespace UserService
             services.AddSingleton<JwtSecurityTokenHandler>();
 
             JwtOptions jwtOptions = config.GetRequiredSection(JwtOptions.Jwt).Get<JwtOptions>() ??
-                throw new Exception("JwtOptions not specified");
+                throw new Exception($"{nameof(JwtOptions)} not specified");
 
             var rsa = RSA.Create();
             rsa.ImportFromPem(jwtOptions.RsaPrivateKey);
@@ -125,6 +127,15 @@ namespace UserService
                     ValidAudience = jwtOptions.Audience
                 };
             });
+        }
+
+        private static void ConfigureEmail(IServiceCollection services,
+            ConfigurationManager config)
+        {
+            EmailOptions emailOptions = config.GetRequiredSection(EmailOptions.Email).Get<EmailOptions>() ??
+                throw new Exception($"{nameof(EmailOptions)} not specified");
+
+            services.AddSingleton(emailOptions);
         }
     }
 }
