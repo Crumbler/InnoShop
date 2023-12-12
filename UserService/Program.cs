@@ -112,7 +112,7 @@ namespace UserService
             }).AddJwtBearer(O =>
             {
                 O.RequireHttpsMetadata = false;
-                O.SaveToken = true;
+                O.SaveToken = false;
                 O.TokenValidationParameters = new TokenValidationParameters
                 {
                     IssuerSigningKey = securityKey,
