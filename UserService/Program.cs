@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -22,12 +23,15 @@ namespace UserService
             ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
             
             var app = builder.Build();
-
+            
             if (app.Environment.IsDevelopment())
             { 
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseExceptionHandler();
 
@@ -37,7 +41,7 @@ namespace UserService
         }
 
         private static void ConfigureServices(IServiceCollection services, 
-            IConfiguration config, IWebHostEnvironment environment)
+            ConfigurationManager config, IWebHostEnvironment environment)
         {
             services.AddControllers();
 
@@ -46,7 +50,22 @@ namespace UserService
                 services.AddSwaggerGen();
             }
 
-            string connectionString = config["ConnectionStrings:UserServiceConnection"] ??
+            ConfigureDatabase(services, config, environment);
+
+            ConfigureAuthentication(services, config, environment);
+
+            services.AddSingleton<IPasswordHelper, PasswordHelper>();
+            
+            services.AddScoped<IUserService, Application.Services.UserService>();
+            
+            services.AddProblemDetails();
+            services.AddExceptionHandler<ExceptionToProblemDetailsHandler>();
+        }
+
+        private static void ConfigureDatabase(IServiceCollection services,
+            ConfigurationManager config, IWebHostEnvironment environment)
+        {
+            string connectionString = config.GetConnectionString("UserServiceConnection") ??
                 throw new Exception("No connection string in configuration.");
 
             services.AddDbContext<UserServiceDbContext>(options => {
@@ -68,24 +87,43 @@ namespace UserService
 
                 services.AddSingleton(Options.Create(options));
             }
+        }
+
+        private static void ConfigureAuthentication(IServiceCollection services,
+            ConfigurationManager config, IWebHostEnvironment environment)
+        {
+            JwtOptions jwtOptions = config.GetRequiredSection(JwtOptions.Jwt).Get<JwtOptions>() ??
+                throw new Exception("JwtOptions not specified");
+            services.AddSingleton(Options.Create(jwtOptions));
 
             services.AddScoped<IUserRepository, EFUserRepository>();
 
             services.AddSingleton<JwtSecurityTokenHandler>();
 
-            string privateKey = config["Authentication:RsaPrivateKey"] ??
-                throw new Exception("Authentication options not specified");
-
             var rsa = RSA.Create();
-            rsa.ImportFromPem(privateKey);
-            services.AddSingleton(new RsaSecurityKey(rsa));
+            rsa.ImportFromPem(jwtOptions.RsaPrivateKey);
+            var securityKey = new RsaSecurityKey(rsa);
+            services.AddSingleton(securityKey);
 
-            services.AddSingleton<IPasswordHelper, PasswordHelper>();
-            
-            services.AddScoped<IUserService, Application.Services.UserService>();
-            
-            services.AddProblemDetails();
-            services.AddExceptionHandler<ExceptionToProblemDetailsHandler>();
+            services.AddAuthentication(A =>
+            {
+                A.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                A.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(O =>
+            {
+                O.RequireHttpsMetadata = false;
+                O.SaveToken = true;
+                O.TokenValidationParameters = new TokenValidationParameters
+                {
+                    IssuerSigningKey = securityKey,
+                    ValidateIssuerSigningKey = true,
+                    ValidateLifetime = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidAudience = jwtOptions.Audience
+                };
+            });
         }
     }
 }

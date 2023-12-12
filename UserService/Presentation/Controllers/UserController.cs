@@ -7,6 +7,7 @@ using UserService.Application.DTOs;
 using UserService.Application.Interfaces;
 using UserService.Application.Options;
 using UserService.Application.Requests;
+using UserService.Presentation.Attributes;
 
 namespace UserService.Presentation.Controllers
 {
@@ -34,7 +35,7 @@ namespace UserService.Presentation.Controllers
             return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
         }
 
-        [Authorize]
+        [Authorize, OtherUserAdminOnly]
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -45,7 +46,7 @@ namespace UserService.Presentation.Controllers
             return NoContent();
         }
 
-        [Authorize]
+        [Authorize, OtherUserAdminOnly]
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
