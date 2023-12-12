@@ -85,22 +85,21 @@ namespace UserService
                 DatabaseHelper.SetupDatabaseAndSeedData(dbContext, initialRoleName);
                 var options = new UserCreationOptions(DatabaseHelper.GetRole(dbContext, initialRoleName));
 
-                services.AddSingleton(Options.Create(options));
+                services.AddSingleton(options);
             }
         }
 
         private static void ConfigureAuthentication(IServiceCollection services,
             ConfigurationManager config, IWebHostEnvironment environment)
         {
-            JwtOptions jwtOptions = config.GetRequiredSection(JwtOptions.Jwt).Get<JwtOptions>() ??
-                throw new Exception("JwtOptions not specified");
-            services.AddSingleton(Options.Create(jwtOptions));
-
             services.AddSingleton<IJwtService, JwtService>();
 
             services.AddScoped<IUserRepository, EFUserRepository>();
 
             services.AddSingleton<JwtSecurityTokenHandler>();
+
+            JwtOptions jwtOptions = config.GetRequiredSection(JwtOptions.Jwt).Get<JwtOptions>() ??
+                throw new Exception("JwtOptions not specified");
 
             var rsa = RSA.Create();
             rsa.ImportFromPem(jwtOptions.RsaPrivateKey);

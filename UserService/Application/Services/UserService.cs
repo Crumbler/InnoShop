@@ -11,7 +11,7 @@ namespace UserService.Application.Services
 {
     public class UserService(IUserRepository userRepository, 
         IPasswordHelper passwordHelper, IJwtService jwtService,
-        IOptions<UserCreationOptions> userCreationOptions) : IUserService
+        UserCreationOptions userCreationOptions) : IUserService
     {
         public async Task<UserDTO> CreateUserAsync(CreateUserReq req)
         {
@@ -27,7 +27,7 @@ namespace UserService.Application.Services
             {
                 Name = req.Name,
                 Email = req.Email,
-                Role = userCreationOptions.Value.InitialRole,
+                Role = userCreationOptions.InitialRole,
                 PasswordHash = hash
             };
 
