@@ -6,7 +6,7 @@ using UserService.Application.Options;
 
 namespace UserService.Infrastructure.Services
 {
-    public class EmailService(EmailOptions emailOptions) : IEmailService
+    public class EmailService(EmailOptions emailOptions, ILogger<EmailService> logger) : IEmailService
     {
         public async Task SendEmailAsync(Email email)
         {
@@ -22,12 +22,20 @@ namespace UserService.Infrastructure.Services
             };
 
             using var client = new SmtpClient();
+            try
+            {
+                await client.ConnectAsync(emailOptions.SmtpServer, 25, false);
 
-            await client.ConnectAsync(emailOptions.SmtpServer, 25, false);
-
-            await client.SendAsync(message);
-
-            await client.DisconnectAsync(true);
+                await client.SendAsync(message);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to send email");
+            }
+            finally
+            {
+                await client.DisconnectAsync(true);
+            }
         }
     }
 }
