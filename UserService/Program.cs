@@ -103,6 +103,8 @@ namespace UserService
             JwtOptions jwtOptions = config.GetRequiredSection(JwtOptions.Jwt).Get<JwtOptions>() ??
                 throw new Exception($"{nameof(JwtOptions)} not specified");
 
+            services.AddSingleton(jwtOptions);
+
             var rsa = RSA.Create();
             rsa.ImportFromPem(jwtOptions.RsaPrivateKey);
             var securityKey = new RsaSecurityKey(rsa);

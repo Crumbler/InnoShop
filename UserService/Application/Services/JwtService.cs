@@ -3,11 +3,13 @@ using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using UserService.Application.Interfaces;
+using UserService.Application.Options;
 using UserService.Domain.Entities;
 
 namespace UserService.Application.Services
 {
-    public class JwtService(RsaSecurityKey key, JwtSecurityTokenHandler handler) : IJwtService
+    public class JwtService(RsaSecurityKey key, JwtSecurityTokenHandler handler,
+        JwtOptions jwtOptions) : IJwtService
     {
         public string GetJwtToken(User user)
         {
@@ -16,8 +18,8 @@ namespace UserService.Application.Services
             var tokenDescriptor = new SecurityTokenDescriptor()
             {
                 Expires = DateTime.UtcNow.AddMinutes(10),
-                Audience = "User",
-                Issuer = "UserService",
+                Audience = jwtOptions.Audience,
+                Issuer = jwtOptions.Issuer,
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new("sub_id", user.UserId.ToString(CultureInfo.InvariantCulture)),
