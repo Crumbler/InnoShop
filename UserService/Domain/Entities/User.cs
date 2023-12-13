@@ -6,7 +6,7 @@
         public required string Name { get; set; }
         public required string Email { get; set; }
         public required Role Role { get; set; }
-        public DateTime CreatedOn { get; init; } = DateTime.UtcNow;
+        public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
         public required string PasswordHash { get; set; }
         public bool IsEmailConfirmed { get; set; } = false;
     }
