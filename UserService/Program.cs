@@ -9,6 +9,7 @@ using UserService.Application.Services;
 using UserService.Domain.Repositories;
 using UserService.Infrastructure.Data;
 using UserService.Infrastructure.Repositories;
+using UserService.Infrastructure.Services;
 using UserService.Presentation.Handlers;
 
 namespace UserService
@@ -138,6 +139,8 @@ namespace UserService
                 throw new Exception($"{nameof(EmailOptions)} not specified");
 
             services.AddSingleton(emailOptions);
+
+            services.AddSingleton<IEmailService, EmailService>();
         }
     }
 }
