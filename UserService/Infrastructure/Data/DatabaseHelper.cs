@@ -41,7 +41,8 @@ namespace UserService.Infrastructure.Data
                     Email = "johndoe@mail.com",
                     CreatedOn = DateTime.UtcNow,
                     PasswordHash = hash,
-                    Role = roleAdmin
+                    Role = roleAdmin,
+                    IsEmailConfirmed = true
                 },
                 new()
                 {
@@ -49,7 +50,8 @@ namespace UserService.Infrastructure.Data
                     Email = "ChristopherBDavis@rhyta.com",
                     CreatedOn = DateTime.UtcNow,
                     PasswordHash = hash,
-                    Role = roleRegular
+                    Role = roleRegular,
+                    IsEmailConfirmed = true
                 },
                 new()
                 {
@@ -57,7 +59,8 @@ namespace UserService.Infrastructure.Data
                     Email = "GilbertDGustafson@dayrep.com",
                     CreatedOn = DateTime.UtcNow,
                     PasswordHash = hash,
-                    Role = roleRegular
+                    Role = roleRegular,
+                    IsEmailConfirmed = true
                 }
             };
 
