@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
@@ -21,11 +20,11 @@ namespace UserService
             var builder = WebApplication.CreateBuilder(args);
 
             ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
-            
+
             var app = builder.Build();
-            
+
             if (app.Environment.IsDevelopment())
-            { 
+            {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
@@ -40,7 +39,7 @@ namespace UserService
             app.Run();
         }
 
-        private static void ConfigureServices(IServiceCollection services, 
+        private static void ConfigureServices(IServiceCollection services,
             ConfigurationManager config, IWebHostEnvironment environment)
         {
             services.AddControllers();
@@ -57,9 +56,9 @@ namespace UserService
             ConfigureEmail(services, config);
 
             services.AddSingleton<IPasswordHelper, PasswordHelper>();
-            
+
             services.AddScoped<IUserService, Application.Services.UserService>();
-            
+
             services.AddProblemDetails();
             services.AddExceptionHandler<ExceptionToProblemDetailsHandler>();
         }
@@ -70,7 +69,8 @@ namespace UserService
             string connectionString = config.GetConnectionString("UserServiceConnection") ??
                 throw new Exception("No UserServiceConnection string in configuration.ConnectionStrings.");
 
-            services.AddDbContext<UserServiceDbContext>(options => {
+            services.AddDbContext<UserServiceDbContext>(options =>
+            {
                 options.UseSqlServer(connectionString);
                 options.EnableSensitiveDataLogging(environment.IsDevelopment());
             });

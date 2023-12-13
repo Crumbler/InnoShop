@@ -11,13 +11,13 @@ namespace UserService.Application.Services
     public class JwtService(RsaSecurityKey key, JwtSecurityTokenHandler handler,
         JwtOptions jwtOptions) : IJwtService
     {
-        public string GetJwtToken(User user)
+        private string GetToken(User user, TimeSpan duration)
         {
             var credentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
 
             var tokenDescriptor = new SecurityTokenDescriptor()
             {
-                Expires = DateTime.UtcNow.AddMinutes(10),
+                Expires = DateTime.UtcNow + duration,
                 Audience = jwtOptions.Audience,
                 Issuer = jwtOptions.Issuer,
                 Subject = new ClaimsIdentity(new Claim[]
@@ -31,6 +31,16 @@ namespace UserService.Application.Services
             var token = handler.CreateToken(tokenDescriptor);
 
             return handler.WriteToken(token);
+        }
+
+        public string GetAuthenticationToken(User user)
+        {
+            return GetToken(user, jwtOptions.LoginDuration);
+        }
+
+        public string GetEmailConfirmationToken(User user)
+        {
+            return GetToken(user, jwtOptions.EmailConfirmationDuration);
         }
     }
 }

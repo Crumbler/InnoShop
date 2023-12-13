@@ -89,7 +89,7 @@ namespace UserService.Application.Services
             return new LoginDTO()
             {
                 UserId = user.UserId,
-                Token = jwtService.GetJwtToken(user)
+                Token = jwtService.GetAuthenticationToken(user)
             };
         }
     }

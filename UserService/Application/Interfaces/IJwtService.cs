@@ -4,6 +4,7 @@ namespace UserService.Application.Interfaces
 {
     public interface IJwtService
     {
-        public string GetJwtToken(User user);
+        public string GetAuthenticationToken(User user);
+        public string GetEmailConfirmationToken(User user);
     }
 }
