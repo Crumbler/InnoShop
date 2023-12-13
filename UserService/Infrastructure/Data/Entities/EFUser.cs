@@ -22,6 +22,7 @@ namespace UserService.Infrastructure.Data.Entities
 
         [Unicode(false)]
         public required string PasswordHash { get; set; }
+        public bool IsEmailConfirmed { get; set; }
 
         public static EFUser FromUser(User user) => new()
         {
@@ -30,7 +31,8 @@ namespace UserService.Infrastructure.Data.Entities
             Email = user.Email,
             Role = EFRole.FromRole(user.Role),
             CreatedOn = user.CreatedOn,
-            PasswordHash = user.PasswordHash
+            PasswordHash = user.PasswordHash,
+            IsEmailConfirmed = user.IsEmailConfirmed
         };
 
         public User ToUser() => new()
@@ -40,7 +42,8 @@ namespace UserService.Infrastructure.Data.Entities
             Email = Email,
             Role = Role.ToRole(),
             CreatedOn = CreatedOn,
-            PasswordHash = PasswordHash
+            PasswordHash = PasswordHash,
+            IsEmailConfirmed = IsEmailConfirmed
         };
     }
 }
