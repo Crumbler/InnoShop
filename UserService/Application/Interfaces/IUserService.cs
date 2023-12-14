@@ -11,5 +11,7 @@ namespace UserService.Application.Interfaces
         Task DeleteUserAsync(int id);
         Task<LoginDTO> Login(LoginReq req);
         Task ConfirmUser(string tokenString);
+        Task ForgotPassword(ForgotPasswordReq req);
+        Task ResetPassword(string tokenString, ResetPasswordRequest req);
     }
 }

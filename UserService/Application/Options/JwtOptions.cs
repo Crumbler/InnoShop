@@ -8,5 +8,6 @@
         public required string Audience { get; set; }
         public required TimeSpan LoginDuration { get; set; }
         public required TimeSpan EmailConfirmationDuration { get; set; }
+        public required TimeSpan ResetPasswordDuration { get; set; }
     }
 }

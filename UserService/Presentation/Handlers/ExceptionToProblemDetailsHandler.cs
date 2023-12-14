@@ -30,6 +30,7 @@ namespace UserService.Presentation.Handlers
                 EmailInUseException => "Email in use",
                 InvalidTokenException => "Invalid token",
                 UserAlreadyConfirmedException => "User already confirmed",
+                SamePasswordException => "Identical password",
                 _ => "An error occured"
             };
 

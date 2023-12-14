@@ -85,5 +85,26 @@ namespace UserService.Presentation.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("/forgotpassword")]
+        [ProducesResponseType<string>(StatusCodes.Status200OK)]
+        [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+        public async Task<string> ForgotPassword([FromBody] ForgotPasswordReq req)
+        {
+            await userService.ForgotPassword(req);
+
+            return "If a user with the specified email exists, instructions on how to reset the password will have been sent.";
+        }
+
+        [HttpPost("/resetpassword/{token}", Name = "ResetPassword")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+        public async Task<NoContentResult> ResetPassword([FromRoute] string token, [FromBody] ResetPasswordRequest req)
+        {
+            await userService.ResetPassword(token, req);
+
+            return NoContent();
+        }
     }
 }

@@ -52,7 +52,8 @@ namespace UserService.Application.Services
                 await userRepository.UpdateUserAsync(user);
             }
 
-            _ = SendConfirmationEmail(user);
+            _ = SendEmailWithLinkToRoute(user, JwtTokenType.EmailConfirmation, "ConfirmEmail", "Account confirmation",
+                "To confirm your account send a POST request to the following url: {0}");
 
             return new UserDTO(user);
         }
@@ -110,22 +111,22 @@ namespace UserService.Application.Services
             return new LoginDTO()
             {
                 UserId = user.UserId,
-                Token = jwtService.GetAuthenticationToken(user)
+                Token = jwtService.GetToken(user, JwtTokenType.Authentication)
             };
         }
 
-        private Task SendConfirmationEmail(User user)
+        private Task SendEmailWithLinkToRoute(User user, JwtTokenType tokenType, string routeName, string subject, string body)
         {
-            string token = jwtService.GetEmailConfirmationToken(user);
-            string confirmationUrl = linkGenerator.GetPathByName("ConfirmEmail", new { token }) ??
-                throw new Exception("Unable to generate url to ConfirmEmail route");
+            string token = jwtService.GetToken(user, tokenType);
+            string confirmationUrl = linkGenerator.GetPathByName(routeName, new { token }) ??
+                throw new Exception($"Unable to generate url to {routeName} route");
 
             var email = new Email()
             {
-                Subject = "Account confirmation",
+                Subject = subject,
                 RecipientName = user.Name,
                 RecepientAddress = user.Email,
-                Body = $"To confirm your account send a POST request to the following url: {confirmationUrl}"
+                Body = string.Format(body, confirmationUrl)
             };
 
             return emailService.SendEmailAsync(email);
@@ -150,6 +151,41 @@ namespace UserService.Application.Services
             }
 
             user.IsEmailConfirmed = true;
+
+            await userRepository.UpdateUserAsync(user);
+        }
+
+        public async Task ForgotPassword(ForgotPasswordReq req)
+        {
+            User? user = await userRepository.GetUserByEmailAsync(req.Email);
+            if (user == null || !user.IsEmailConfirmed)
+            {
+                return;
+            }
+
+            _ = SendEmailWithLinkToRoute(user, JwtTokenType.PasswordReset, "ResetPassword", "Reset password",
+                "To reset your password send a POST request to the following url: {0}");
+        }
+
+        public async Task ResetPassword(string tokenString, ResetPasswordRequest req)
+        {
+            if (!jwtService.ValidateToken(tokenString, out JwtSecurityToken? token))
+            {
+                throw new InvalidTokenException();
+            }
+
+            int userId = int.Parse(token.Claims.Single(c => c.Type == "sub_id").Value,
+                CultureInfo.InvariantCulture);
+
+            User? user = await userRepository.GetUserAsync(userId) ??
+                throw new UserNotFoundException(userId);
+
+            if (passwordHelper.IsValid(req.Password, user.PasswordHash))
+            {
+                throw new SamePasswordException();
+            }
+
+            user.PasswordHash = passwordHelper.HashPassword(req.Password);
 
             await userRepository.UpdateUserAsync(user);
         }

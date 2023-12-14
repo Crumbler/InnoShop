@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using UserService.Application.Interfaces;
+using UserService.Application.Models;
 using UserService.Application.Options;
 using UserService.Domain.Entities;
 
@@ -35,15 +36,13 @@ namespace UserService.Application.Services
             return handler.WriteToken(token);
         }
 
-        public string GetAuthenticationToken(User user)
+        public string GetToken(User user, JwtTokenType type) => type switch
         {
-            return GetToken(user, jwtOptions.LoginDuration);
-        }
-
-        public string GetEmailConfirmationToken(User user)
-        {
-            return GetToken(user, jwtOptions.EmailConfirmationDuration);
-        }
+            JwtTokenType.Authentication => GetToken(user, jwtOptions.LoginDuration),
+            JwtTokenType.EmailConfirmation => GetToken(user, jwtOptions.EmailConfirmationDuration),
+            JwtTokenType.PasswordReset => GetToken(user, jwtOptions.ResetPasswordDuration),
+            _ => throw new ArgumentException("Unknown Jwt token type", nameof(type)),
+        };
 
         public bool ValidateToken(string tokenString, [NotNullWhen(true)] out JwtSecurityToken? token)
         {
