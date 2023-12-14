@@ -53,7 +53,7 @@ namespace UserService.Application.Services
                 token = (JwtSecurityToken)validatedToken;
                 return true;
             }
-            catch (SecurityTokenValidationException e)
+            catch (Exception e)
             {
                 logger.LogError(e, "Failed to validate JWT token");
 

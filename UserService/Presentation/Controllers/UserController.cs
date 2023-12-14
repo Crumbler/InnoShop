@@ -14,9 +14,9 @@ namespace UserService.Presentation.Controllers
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-        public async Task<UserDTO> GetUser([FromRoute] int id)
+        public Task<UserDTO> GetUser([FromRoute] int id)
         {
-            return await userService.GetUserAsync(id);
+            return userService.GetUserAsync(id);
         }
 
         [HttpPost]
@@ -61,9 +61,9 @@ namespace UserService.Presentation.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
-        public async Task<LoginDTO> Login([FromBody] LoginReq req)
+        public Task<LoginDTO> Login([FromBody] LoginReq req)
         {
-            return await userService.Login(req);
+            return userService.Login(req);
         }
 
         [HttpDelete("/logout")]
@@ -71,6 +71,17 @@ namespace UserService.Presentation.Controllers
         public NoContentResult Logout()
         {
             Response.Headers.Remove("Authorization");
+
+            return NoContent();
+        }
+
+        [HttpPost("/confirm/{token}", Name = "ConfirmEmail")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+        public async Task<NoContentResult> ConfirmEmail([FromRoute] string token)
+        {
+            await userService.ConfirmUser(token);
 
             return NoContent();
         }

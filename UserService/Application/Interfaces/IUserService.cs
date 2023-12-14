@@ -10,5 +10,6 @@ namespace UserService.Application.Interfaces
         Task UpdateUserAsync(int id, UpdateUserReq req);
         Task DeleteUserAsync(int id);
         Task<LoginDTO> Login(LoginReq req);
+        Task ConfirmUser(string tokenString);
     }
 }
