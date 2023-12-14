@@ -1,4 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -9,7 +10,8 @@ using UserService.Domain.Entities;
 namespace UserService.Application.Services
 {
     public class JwtService(RsaSecurityKey key, JwtSecurityTokenHandler handler,
-        JwtOptions jwtOptions) : IJwtService
+        JwtOptions jwtOptions, TokenValidationParameters validationParameters,
+        ILogger<JwtService> logger) : IJwtService
     {
         private string GetToken(User user, TimeSpan duration)
         {
@@ -41,6 +43,23 @@ namespace UserService.Application.Services
         public string GetEmailConfirmationToken(User user)
         {
             return GetToken(user, jwtOptions.EmailConfirmationDuration);
+        }
+
+        public bool ValidateToken(string tokenString, [NotNullWhen(true)] out JwtSecurityToken? token)
+        {
+            try
+            {
+                handler.ValidateToken(tokenString, validationParameters, out SecurityToken validatedToken);
+                token = (JwtSecurityToken)validatedToken;
+                return true;
+            }
+            catch (SecurityTokenValidationException e)
+            {
+                logger.LogError(e, "Failed to validate JWT token");
+
+                token = null;
+                return false;
+            }
         }
     }
 }

@@ -111,6 +111,19 @@ namespace UserService
             var securityKey = new RsaSecurityKey(rsa);
             services.AddSingleton(securityKey);
 
+            var validationParameters = new TokenValidationParameters
+            {
+                IssuerSigningKey = securityKey,
+                ValidateIssuerSigningKey = true,
+                ValidateLifetime = true,
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidIssuer = jwtOptions.Issuer,
+                ValidAudience = jwtOptions.Audience
+            };
+
+            services.AddSingleton(validationParameters);
+
             services.AddAuthentication(A =>
             {
                 A.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -119,16 +132,7 @@ namespace UserService
             {
                 O.RequireHttpsMetadata = false;
                 O.SaveToken = false;
-                O.TokenValidationParameters = new TokenValidationParameters
-                {
-                    IssuerSigningKey = securityKey,
-                    ValidateIssuerSigningKey = true,
-                    ValidateLifetime = true,
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidIssuer = jwtOptions.Issuer,
-                    ValidAudience = jwtOptions.Audience
-                };
+                O.TokenValidationParameters = validationParameters;
             });
         }
 

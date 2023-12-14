@@ -1,4 +1,6 @@
-﻿using UserService.Domain.Entities;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.IdentityModel.Tokens.Jwt;
+using UserService.Domain.Entities;
 
 namespace UserService.Application.Interfaces
 {
@@ -6,5 +8,6 @@ namespace UserService.Application.Interfaces
     {
         public string GetAuthenticationToken(User user);
         public string GetEmailConfirmationToken(User user);
+        public bool ValidateToken(string tokenString, [NotNullWhen(true)] out JwtSecurityToken? token);
     }
 }
