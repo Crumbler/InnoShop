@@ -595,5 +595,222 @@ namespace UserService.Tests.UnitTests
             mockUserRepo.Verify(m => m.UpdateUserAsync(user), Times.Once());
             mockJwtService.Verify(m => m.ValidateToken(null!, out token), Times.Once());
         }
+
+        [Test]
+        public static void ForgotPassword_NoUserExists()
+        {
+            // Arrange
+            Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
+
+            mockUserRepo.Setup(m => m.GetUserByEmailAsync(It.IsAny<string>()).Result)
+                .Returns((User?)null);
+
+            ForgotPasswordReq req = new()
+            { 
+                Email = "email" 
+            };
+
+            var userService = CreateUserService(mockUserRepo.Object);
+
+            // Act
+            userService.ForgotPasswordAsync(req).Wait();
+
+            // Assert
+            mockUserRepo.Verify(m => m.GetUserByEmailAsync(req.Email), Times.Once());
+        }
+
+        [Test]
+        public static void ForgotPassword_UserNotConfirmed()
+        {
+            // Arrange
+            Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
+
+            var user = CreateUser(email: "email");
+
+            mockUserRepo.Setup(m => m.GetUserByEmailAsync(user.Email).Result)
+                .Returns(user);
+
+            ForgotPasswordReq req = new()
+            {
+                Email = user.Email
+            };
+
+            var userService = CreateUserService(mockUserRepo.Object);
+
+            // Act
+            userService.ForgotPasswordAsync(req).Wait();
+
+            // Assert
+            mockUserRepo.Verify(m => m.GetUserByEmailAsync(req.Email), Times.Once());
+        }
+
+        [Test]
+        public static void ForgotPassword_Normal()
+        {
+            // Arrange
+            Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
+            Mock<LinkGenerator> mockLinkGen = new();
+
+            var user = CreateUser(email: "email", emailConfirmed: true);
+
+            mockUserRepo.Setup(m => m.GetUserByEmailAsync(user.Email).Result)
+                .Returns(user);
+
+            mockLinkGen.SetReturnsDefault(string.Empty);
+
+            ForgotPasswordReq req = new()
+            {
+                Email = user.Email
+            };
+
+            var userService = CreateUserService(mockUserRepo.Object, 
+                linkGenerator: mockLinkGen.Object);
+
+            // Act
+            userService.ForgotPasswordAsync(req).Wait();
+
+            // Assert
+            mockUserRepo.Verify(m => m.GetUserByEmailAsync(req.Email), Times.Once());
+        }
+
+        [Test]
+        public static void ResetPassword_InvalidToken()
+        {
+            // Arrange
+            Mock<IJwtService> mockJwtService = new(MockBehavior.Strict);
+
+            JwtSecurityToken? token = null;
+            mockJwtService.Setup(m => m.ValidateToken(It.IsAny<string>(), out token))
+                .Returns(false);
+
+            var userService = CreateUserService(jwtService: mockJwtService.Object);
+
+            // Act
+            Assert.ThrowsAsync<InvalidTokenException>(() => 
+                userService.ResetPasswordAsync(null!, null!));
+
+            // Assert
+            mockJwtService.Verify(m => m.ValidateToken(null!, out token), Times.Once());
+        }
+
+        [Test]
+        public static void ResetPassword_UserNotFound()
+        {
+            // Arrange
+            Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
+            Mock<IJwtService> mockJwtService = new(MockBehavior.Strict);
+
+            mockUserRepo.Setup(m => m.GetUserAsync(It.IsAny<int>()).Result)
+                .Returns((User?)null);
+
+            const int userId = 1;
+
+            JwtSecurityToken? token = new(claims:
+                        [new("sub_id", userId.ToString(CultureInfo.InvariantCulture))]);
+            mockJwtService.Setup(m => m.ValidateToken(It.IsAny<string>(), out token))
+                .Returns(true);
+
+            var userService = CreateUserService(mockUserRepo.Object,
+                jwtService: mockJwtService.Object);
+
+            // Act
+            Assert.ThrowsAsync(Is.TypeOf<UserNotFoundException>()
+                               .And.Message.Contains(userId.ToString(CultureInfo.InvariantCulture)),
+                () => userService.ResetPasswordAsync(null!, null!));
+
+            // Assert
+            mockUserRepo.Verify(m => m.GetUserAsync(userId), Times.Once());
+            mockJwtService.Verify(m => m.ValidateToken(null!, out token), Times.Once());
+        }
+
+        [Test]
+        public static void ResetPassword_SamePassword()
+        {
+            // Arrange
+            Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
+            Mock<IJwtService> mockJwtService = new(MockBehavior.Strict);
+            Mock<IPasswordHelper> mockPswHelper = new(MockBehavior.Strict);
+
+            var user = CreateUser(passwordHash: "hash");
+
+            mockUserRepo.Setup(m => m.GetUserAsync(user.UserId).Result)
+                .Returns(user);
+
+            JwtSecurityToken? token = new(claims:
+                        [new("sub_id", user.UserId.ToString(CultureInfo.InvariantCulture))]);
+            mockJwtService.Setup(m => m.ValidateToken(string.Empty, out token))
+                .Returns(true);
+
+            mockPswHelper.Setup(m => m.IsValid(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(true);
+
+            var userService = CreateUserService(mockUserRepo.Object,
+                mockPswHelper.Object,
+                jwtService: mockJwtService.Object);
+
+            ResetPasswordRequest req = new()
+            {
+                Password = "newPassword"
+            };
+
+            // Act
+            Assert.ThrowsAsync<SamePasswordException>(() => 
+                userService.ResetPasswordAsync(string.Empty, req));
+
+            // Assert
+            mockUserRepo.Verify(m => m.GetUserAsync(user.UserId), Times.Once());
+            mockJwtService.Verify(m => m.ValidateToken(string.Empty, out token), Times.Once());
+            mockPswHelper.Verify(m => m.IsValid(req.Password, user.PasswordHash), Times.Once());
+        }
+
+        [Test]
+        public static void ResetPassword_Normal()
+        {
+            // Arrange
+            Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
+            Mock<IJwtService> mockJwtService = new(MockBehavior.Strict);
+            Mock<IPasswordHelper> mockPswHelper = new(MockBehavior.Strict);
+
+            const string oldHash = "hash";
+            var user = CreateUser(passwordHash: oldHash);
+
+            mockUserRepo.Setup(m => m.GetUserAsync(user.UserId).Result)
+                .Returns(user);
+            mockUserRepo.Setup(m => m.UpdateUserAsync(user))
+                .Returns(Task.CompletedTask);
+
+            JwtSecurityToken? token = new(claims:
+                        [new("sub_id", user.UserId.ToString(CultureInfo.InvariantCulture))]);
+            mockJwtService.Setup(m => m.ValidateToken(string.Empty, out token))
+                .Returns(true);
+
+            const string newHash = "newHash";
+
+            mockPswHelper.Setup(m => m.IsValid(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(false);
+            mockPswHelper.Setup(m => m.HashPassword(It.IsAny<string>()))
+                .Returns(newHash);
+
+            var userService = CreateUserService(mockUserRepo.Object,
+                mockPswHelper.Object,
+                jwtService: mockJwtService.Object);
+
+            ResetPasswordRequest req = new()
+            {
+                Password = "newPassword"
+            };
+
+            // Act
+            userService.ResetPasswordAsync(string.Empty, req).Wait();
+
+            // Assert
+            mockUserRepo.Verify(m => m.GetUserAsync(user.UserId), Times.Once());
+            mockUserRepo.Verify(m => m.UpdateUserAsync(user), Times.Once());
+            mockJwtService.Verify(m => m.ValidateToken(string.Empty, out token), Times.Once());
+            mockPswHelper.Verify(m => m.IsValid(req.Password, oldHash), Times.Once());
+            mockPswHelper.Verify(m => m.HashPassword(req.Password), Times.Once());
+
+            Assert.That(user.PasswordHash, Is.EqualTo(newHash));
+        }
     }
 }
