@@ -63,7 +63,7 @@ namespace UserService.Presentation.Controllers
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
         public Task<LoginDTO> Login([FromBody] LoginReq req)
         {
-            return userService.Login(req);
+            return userService.LoginAsync(req);
         }
 
         [HttpDelete("/logout")]
@@ -81,7 +81,7 @@ namespace UserService.Presentation.Controllers
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
         public async Task<NoContentResult> ConfirmEmail([FromRoute] string token)
         {
-            await userService.ConfirmUser(token);
+            await userService.ConfirmUserAsync(token);
 
             return NoContent();
         }
@@ -91,7 +91,7 @@ namespace UserService.Presentation.Controllers
         [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
         public async Task<string> ForgotPassword([FromBody] ForgotPasswordReq req)
         {
-            await userService.ForgotPassword(req);
+            await userService.ForgotPasswordAsync(req);
 
             return "If a user with the specified email exists, instructions on how to reset the password will have been sent.";
         }
@@ -102,7 +102,7 @@ namespace UserService.Presentation.Controllers
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
         public async Task<NoContentResult> ResetPassword([FromRoute] string token, [FromBody] ResetPasswordRequest req)
         {
-            await userService.ResetPassword(token, req);
+            await userService.ResetPasswordAsync(token, req);
 
             return NoContent();
         }

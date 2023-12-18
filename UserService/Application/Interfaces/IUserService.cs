@@ -9,9 +9,9 @@ namespace UserService.Application.Interfaces
         Task<UserDTO> GetUserAsync(int id);
         Task UpdateUserAsync(int id, UpdateUserReq req);
         Task DeleteUserAsync(int id);
-        Task<LoginDTO> Login(LoginReq req);
-        Task ConfirmUser(string tokenString);
-        Task ForgotPassword(ForgotPasswordReq req);
-        Task ResetPassword(string tokenString, ResetPasswordRequest req);
+        Task<LoginDTO> LoginAsync(LoginReq req);
+        Task ConfirmUserAsync(string tokenString);
+        Task ForgotPasswordAsync(ForgotPasswordReq req);
+        Task ResetPasswordAsync(string tokenString, ResetPasswordRequest req);
     }
 }

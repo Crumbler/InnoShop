@@ -98,7 +98,7 @@ namespace UserService.Application.Services
             await userRepository.UpdateUserAsync(user);
         }
 
-        public async Task<LoginDTO> Login(LoginReq req)
+        public async Task<LoginDTO> LoginAsync(LoginReq req)
         {
             User user = await userRepository.GetUserByEmailAsync(req.Email) ??
                 throw new InvalidCredentialsException();
@@ -132,7 +132,7 @@ namespace UserService.Application.Services
             return emailService.SendEmailAsync(email);
         }
 
-        public async Task ConfirmUser(string tokenString)
+        public async Task ConfirmUserAsync(string tokenString)
         {
             if (!jwtService.ValidateToken(tokenString, out JwtSecurityToken? token))
             {
@@ -155,7 +155,7 @@ namespace UserService.Application.Services
             await userRepository.UpdateUserAsync(user);
         }
 
-        public async Task ForgotPassword(ForgotPasswordReq req)
+        public async Task ForgotPasswordAsync(ForgotPasswordReq req)
         {
             User? user = await userRepository.GetUserByEmailAsync(req.Email);
             if (user == null || !user.IsEmailConfirmed)
@@ -167,7 +167,7 @@ namespace UserService.Application.Services
                 "To reset your password send a POST request to the following url: {0}");
         }
 
-        public async Task ResetPassword(string tokenString, ResetPasswordRequest req)
+        public async Task ResetPasswordAsync(string tokenString, ResetPasswordRequest req)
         {
             if (!jwtService.ValidateToken(tokenString, out JwtSecurityToken? token))
             {
