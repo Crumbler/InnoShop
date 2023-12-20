@@ -37,6 +37,7 @@ namespace UserService.Infrastructure.Data
             {
                 new()
                 {
+                    UserId = 1,
                     Name = "John Doe",
                     Email = "johndoe@mail.com",
                     CreatedOn = DateTime.UtcNow,
@@ -46,6 +47,7 @@ namespace UserService.Infrastructure.Data
                 },
                 new()
                 {
+                    UserId = 2,
                     Name = "Christopher Davis",
                     Email = "ChristopherBDavis@rhyta.com",
                     CreatedOn = DateTime.UtcNow,
@@ -55,6 +57,7 @@ namespace UserService.Infrastructure.Data
                 },
                 new()
                 {
+                    UserId = 3,
                     Name = "Gilbert Gustafson",
                     Email = "GilbertDGustafson@dayrep.com",
                     CreatedOn = DateTime.UtcNow,
@@ -64,9 +67,15 @@ namespace UserService.Infrastructure.Data
                 }
             };
 
+            using var transaction = context.Database.BeginTransaction();
+
             context.Users.AddRange(users);
 
+            context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.[Users] ON");
             context.SaveChanges();
+            context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.[Users] OFF");
+
+            transaction.Commit();
         }
 
         public static Role GetRole(UserServiceDbContext context, string name)
