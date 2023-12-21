@@ -14,6 +14,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmailServer", "EmailServer\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserService.Tests", "UserService.Tests\UserService.Tests.csproj", "{0EFA34AC-3A26-486D-B00A-B88FD9ADA5B5}"
 EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{846C5861-E996-4DE2-B824-1163996ECFBD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{0EFA34AC-3A26-486D-B00A-B88FD9ADA5B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0EFA34AC-3A26-486D-B00A-B88FD9ADA5B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0EFA34AC-3A26-486D-B00A-B88FD9ADA5B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{846C5861-E996-4DE2-B824-1163996ECFBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{846C5861-E996-4DE2-B824-1163996ECFBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{846C5861-E996-4DE2-B824-1163996ECFBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{846C5861-E996-4DE2-B824-1163996ECFBD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

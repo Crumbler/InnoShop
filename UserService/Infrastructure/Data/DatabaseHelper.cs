@@ -10,10 +10,7 @@ namespace UserService.Infrastructure.Data
         public static void SetupDatabaseAndSeedData(UserServiceDbContext context,
             string initialUserRoleName)
         {
-            if (context.Database.GetPendingMigrations().Any())
-            {
-                context.Database.Migrate();
-            }
+            context.Database.Migrate();
 
             if (context.Roles.Any() || context.Users.Any())
             {

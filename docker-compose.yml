@@ -1,0 +1,12 @@
+version: '3.4'
+
+services:
+  userservice:
+    image: ${DOCKER_REGISTRY-}userservice
+    build:
+      context: .
+      dockerfile: UserService/Dockerfile
+    depends_on:
+      - sqlusers
+  sqlusers:
+    image: mcr.microsoft.com/mssql/server:2022-latest
