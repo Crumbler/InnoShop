@@ -7,6 +7,7 @@ services:
       context: .
       dockerfile: UserService/Dockerfile
     depends_on:
-      - sqlusers
+      sqlusers:
+        condition: service_healthy
   sqlusers:
     image: mcr.microsoft.com/mssql/server:2022-latest
