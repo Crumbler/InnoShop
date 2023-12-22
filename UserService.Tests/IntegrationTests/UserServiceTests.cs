@@ -1,52 +1,51 @@
-﻿using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Configurations;
-using DotNet.Testcontainers.Containers;
-using DotNet.Testcontainers.Images;
-using Microsoft.Extensions.Logging;
+﻿using System.Net;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace UserService.Tests.IntegrationTests
 {
     [TestFixture]
     [Parallelizable(ParallelScope.Self)]
-    public static class UserServiceTests
-    {
-        private static IFutureDockerImage serviceImage;
-        private static IContainer serviceContainer;
+    public class UserServiceTests
+    { 
+        private static HttpClient client;
+        private static WebApplicationFactory<UserService.Program>? factory;
 
         [OneTimeSetUp]
-        public static async Task Setup()
+        public static void Setup()
         {
-            var factory = LoggerFactory.Create(o => o.AddDebug());
-            TestcontainersSettings.Logger = factory.CreateLogger("logger");
-
-            serviceImage = new ImageFromDockerfileBuilder()
-                .WithName("userservicetest")
-                .WithDockerfileDirectory(CommonDirectoryPath.GetSolutionDirectory(), "UserService")
-                .WithDockerfile("Dockerfile")
-                .Build();
-
-            await serviceImage.CreateAsync();
-
-            serviceContainer = new ContainerBuilder()
-                .Build();
-
-            await serviceContainer.StartAsync();
+            factory = new WebApplicationFactory<UserService.Program>()
+                .WithWebHostBuilder(builder => builder.UseEnvironment("Testing"));
+            client = factory.CreateClient();
         }
 
         [Test]
-        public static void UnauthenticatedResponses()
+        public static async Task UnauthenticatedResponses()
         {
-            
+            // Arrange
+            var request1 = new HttpRequestMessage(HttpMethod.Put, "users/1");
+            var request2 = new HttpRequestMessage(HttpMethod.Delete, "users/25");
+
+            // Act
+            var response1 = await client.SendAsync(request1);
+            var response2 = await client.SendAsync(request2);
+
+            // Assert
+            Assert.Multiple(() =>
+            {
+                Assert.That(response1.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+                Assert.That(response2.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            });
         }
 
         [OneTimeTearDown]
         public static async Task TearDown()
         {
-            await serviceImage.DisposeAsync();
+            client.Dispose();
 
-            if (serviceContainer != null)
+            if (factory != null)
             {
-                await serviceContainer.DisposeAsync();
+                await factory.DisposeAsync();
             }
         }
     }

@@ -14,7 +14,7 @@ using UserService.Presentation.Handlers;
 
 namespace UserService
 {
-    public static class Program
+    public class Program
     {
         public static void Main(string[] args)
         {

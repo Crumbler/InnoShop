@@ -4,8 +4,7 @@ services:
   userservice:
     image: ${DOCKER_REGISTRY-}userservice
     build:
-      context: .
-      dockerfile: UserService/Dockerfile
+      context: UserService
     depends_on:
       sqlusers:
         condition: service_healthy
