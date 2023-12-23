@@ -100,7 +100,7 @@ namespace UserService.Presentation.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
-        public async Task<NoContentResult> ResetPassword([FromRoute] string token, [FromBody] ResetPasswordRequest req)
+        public async Task<NoContentResult> ResetPassword([FromRoute] string token, [FromBody] ResetPasswordReq req)
         {
             await userService.ResetPasswordAsync(token, req);
 

@@ -748,7 +748,7 @@ namespace UserService.Tests.UnitTests
                 mockPswHelper.Object,
                 jwtService: mockJwtService.Object);
 
-            ResetPasswordRequest req = new()
+            ResetPasswordReq req = new()
             {
                 Password = "newPassword"
             };
@@ -795,7 +795,7 @@ namespace UserService.Tests.UnitTests
                 mockPswHelper.Object,
                 jwtService: mockJwtService.Object);
 
-            ResetPasswordRequest req = new()
+            ResetPasswordReq req = new()
             {
                 Password = "newPassword"
             };

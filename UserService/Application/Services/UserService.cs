@@ -167,7 +167,7 @@ namespace UserService.Application.Services
                 "To reset your password send a POST request to the following url: {0}");
         }
 
-        public async Task ResetPasswordAsync(string tokenString, ResetPasswordRequest req)
+        public async Task ResetPasswordAsync(string tokenString, ResetPasswordReq req)
         {
             if (!jwtService.ValidateToken(tokenString, out JwtSecurityToken? token))
             {

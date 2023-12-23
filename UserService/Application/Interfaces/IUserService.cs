@@ -12,6 +12,6 @@ namespace UserService.Application.Interfaces
         Task<LoginDTO> LoginAsync(LoginReq req);
         Task ConfirmUserAsync(string tokenString);
         Task ForgotPasswordAsync(ForgotPasswordReq req);
-        Task ResetPasswordAsync(string tokenString, ResetPasswordRequest req);
+        Task ResetPasswordAsync(string tokenString, ResetPasswordReq req);
     }
 }

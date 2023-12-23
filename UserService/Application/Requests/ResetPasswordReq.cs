@@ -2,7 +2,7 @@
 
 namespace UserService.Application.Requests
 {
-    public class ResetPasswordRequest
+    public class ResetPasswordReq
     {
         [StringLength(maximumLength: 30, MinimumLength = 8)]
         [RegularExpression(@"^(?=\d*[a-zA-Z]+)(?=[a-zA-Z]*\d+).*$",
