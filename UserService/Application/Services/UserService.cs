@@ -55,7 +55,7 @@ namespace UserService.Application.Services
             _ = SendEmailWithLinkToRoute(user, JwtTokenType.EmailConfirmation, "ConfirmEmail", "Account confirmation",
                 "To confirm your account send a POST request to the following url: {0}");
 
-            return new UserDTO(user);
+            return UserDTO.FromUser(user);
         }
 
         public async Task DeleteUserAsync(int id)
@@ -71,7 +71,7 @@ namespace UserService.Application.Services
             User user = await userRepository.GetUserAsync(id) ??
                 throw new UserNotFoundException(id);
 
-            return new UserDTO(user);
+            return UserDTO.FromUser(user);
         }
 
         public async Task UpdateUserAsync(int id, UpdateUserReq req)

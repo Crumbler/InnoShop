@@ -2,12 +2,21 @@
 
 namespace UserService.Application.DTOs
 {
-    public class UserDTO(User user)
+    public class UserDTO
     {
-        public int UserId { get; } = user.UserId;
-        public string Name { get; } = user.Name;
-        public string Email { get; } = user.Email;
-        public Role Role { get; } = user.Role;
-        public DateTime CreatedOn { get; } = user.CreatedOn;
+        public required int UserId { get; init; }
+        public required string Name { get; init; }
+        public required string Email { get; init; }
+        public required Role Role { get; init; }
+        public required DateTime CreatedOn { get; init; }
+
+        public static UserDTO FromUser(User user) => new()
+        {
+            UserId = user.UserId,
+            Name = user.Name,
+            Email = user.Email,
+            Role = user.Role,
+            CreatedOn = user.CreatedOn
+        };
     }
 }
