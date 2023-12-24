@@ -2,6 +2,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using UserService.Application.DTOs;
@@ -54,6 +55,96 @@ namespace UserService.Tests.IntegrationTests
             // Assert
             Assert.That(results.Select(res => res.StatusCode),
                 Is.All.EqualTo(HttpStatusCode.Unauthorized));
+        }
+
+        [Test]
+        public static async Task UpdateUser_DeleteUser_NotFound()
+        {
+            // Arrange
+            var loginDto = await LoginAsAdmin();
+
+            client.DefaultRequestHeaders.Authorization = 
+                new AuthenticationHeaderValue("Bearer", loginDto.Token);
+
+            const string path = "users/-50";
+
+            Task<HttpResponseMessage>[] tasks =
+                [
+                    client.PutAsJsonAsync(path, new UpdateUserReq()),
+                    client.DeleteAsync(path)
+                ];
+
+            // Act
+            var results = await Task.WhenAll(tasks);
+
+            // Assert
+            Assert.That(results.Select(s => s.StatusCode), 
+                Is.All.EqualTo(HttpStatusCode.NotFound));
+
+            client.DefaultRequestHeaders.Authorization = null;
+        }
+
+        [Test]
+        public static async Task UpdateUser_DeleteUser_OtherUser_EmailTaken()
+        {
+            (UserDTO user, string password) = await CreateUser();
+
+            var loginDto = await LoginAsUser(user.Email, password);
+
+            client.DefaultRequestHeaders.Authorization = 
+                new AuthenticationHeaderValue("Bearer", loginDto.Token);
+
+            var req = new UpdateUserReq()
+            {
+                Email = "johndoe@mail.com"
+            };
+
+            // Email taken
+            var res = await client.PutAsJsonAsync($"users/{loginDto.UserId}", req);
+            Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
+
+            // Can't update other users if not admin
+            res = await client.PutAsJsonAsync($"users/1", req);
+            Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+
+            req.Email = "newemail@mail.com";
+            req.Name = "New Name";
+
+            res = await client.PutAsJsonAsync($"users/{loginDto.UserId}", req);
+            Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+
+            // Can't delete other users if not admin
+            res = await client.DeleteAsync($"users/-5");
+            Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+
+            res = await client.DeleteAsync($"users/{loginDto.UserId}");
+            Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+
+            client.DefaultRequestHeaders.Authorization = null;
+        }
+
+        [Test]
+        public static async Task UpdateDeleteOtherUser_AsAdmin()
+        {
+            var user = (await CreateUser()).dto;
+
+            var loginDto = await LoginAsAdmin();
+
+            client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", loginDto.Token);
+
+            string path = $"users/{user.UserId}";
+
+            var res = await client.PutAsJsonAsync(path, new UpdateUserReq()
+            {
+                Name = "New Name"
+            });
+            Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+
+            res = await client.DeleteAsync(path);
+            Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+
+            client.DefaultRequestHeaders.Authorization = null;
         }
 
         [Test]
@@ -146,6 +237,7 @@ namespace UserService.Tests.IntegrationTests
 
             LoginDTO? dto = await res.Content.ReadFromJsonAsync<LoginDTO>();
 
+            // Assert
             Assert.Multiple(() =>
             {
                 Assert.That(dto, Is.Not.Null);
@@ -270,7 +362,7 @@ namespace UserService.Tests.IntegrationTests
         [Test]
         public static async Task ForgotPassword_ResetPassword_SamePassword()
         {
-            UserDTO user = await CreateUser();
+            UserDTO user = (await CreateUser()).dto;
 
             var forgotPasswordReq = new ForgotPasswordReq()
             { 
@@ -365,27 +457,45 @@ namespace UserService.Tests.IntegrationTests
         /// </summary>
         private static async Task DeleteUser(int id)
         {
-            var req = new LoginReq()
-            {
-                Email = "johndoe@mail.com",
-                Password = "abc12345"
-            };
-
-            // login as admin
-            var res = await client.PostAsJsonAsync("login", req);
-            var dto = await res.Content.ReadFromJsonAsync<LoginDTO>();
+            var dto = await LoginAsAdmin();
 
             var request = new HttpRequestMessage(HttpMethod.Delete, $"users/{id}");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer",
-                dto!.Token);
+            request.Headers.Authorization = 
+                new AuthenticationHeaderValue("Bearer", dto.Token);
 
             await client.SendAsync(request);
+        }
+
+        private static Task<LoginDTO> LoginAsAdmin()
+        {
+            return LoginAsUser("johndoe@mail.com", "abc12345");
+        }
+
+        private static async Task<LoginDTO> LoginAsUser(string email, string password)
+        {
+            var res = await client.PostAsJsonAsync("login", new LoginReq()
+            {
+                Email = email,
+                Password = password
+            });
+
+            if (!res.IsSuccessStatusCode)
+            {
+                throw new Exception("Failed to successfully login with credentials: " +
+                    $"${email} {password}");
+            }
+
+            LoginDTO dto = await res.Content.ReadFromJsonAsync<LoginDTO>() ??
+                throw new Exception("Failed to successfully login with credentials: " +
+                    $"${email} {password}");
+
+            return dto;
         }
 
         /// <summary>
         /// Creates a dummy user
         /// </summary>
-        private static async Task<UserDTO> CreateUser()
+        private static async Task<(UserDTO dto, string password)> CreateUser()
         {
             var req = new CreateUserReq()
             {
@@ -407,7 +517,7 @@ namespace UserService.Tests.IntegrationTests
                 throw new Exception("Failed to create user");
             }
 
-            return dto;
+            return (dto, req.Password);
         }
 
         [OneTimeTearDown]
