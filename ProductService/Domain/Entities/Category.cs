@@ -3,6 +3,6 @@
     public class Category
     {
         public int CategoryId { get; init; }
-        public required string CategoryName { get; init; }
+        public required string Name { get; init; }
     }
 }
