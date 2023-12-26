@@ -23,6 +23,7 @@ namespace ProductService.Presentation.Handlers
             string title = exception switch
             {
                 ProductNotFoundException => "Product not found",
+                CategoryNotFoundException => "Category not found",
                 OtherUserAdminOnlyException => "Unauthorized attempt to edit other user's product",
                 _ => "An error occured"
             };

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using LinqKit.Core;
+using Microsoft.EntityFrameworkCore;
 using ProductService.Domain.Entities;
 using ProductService.Domain.Repositories;
 using ProductService.Infrastructure.Data;
@@ -40,6 +41,7 @@ namespace ProductService.Infrastructure.Repositories
 
             return dbContext.Products
                 .AsNoTracking()
+                .AsExpandable()
                 .Include(p => p.Category)
                 .Select(p => p.ToProduct())
                 .Where(filter)

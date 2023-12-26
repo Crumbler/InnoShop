@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ProductService.Application.Interfaces;
+using ProductService.Application.Options;
 using ProductService.Domain.Repositories;
 using ProductService.Infrastructure.Data;
 using ProductService.Infrastructure.Repositories;
@@ -49,6 +50,11 @@ namespace ProductService
 
             services.AddProblemDetails();
             services.AddExceptionHandler<ExceptionToProblemDetailsHandler>();
+
+            var browsingOptions = config.GetRequiredSection(BrowsingOptions.Browsing).Get<BrowsingOptions>() ??
+                throw new Exception($"{nameof(BrowsingOptions)} not specified");
+
+            services.AddSingleton(browsingOptions);
         }
 
         private static void ConfigureDatabase(IServiceCollection services,
@@ -71,6 +77,7 @@ namespace ProductService
             DatabaseHelper.SetupDatabaseAndSeedData(dbContext);
 
             services.AddScoped<IProductRepository, EFProductRepository>();
+            services.AddScoped<ICategoryRepository, EFCategoryRepository>();
         }
     }
 }

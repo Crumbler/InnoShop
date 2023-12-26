@@ -1,6 +1,6 @@
 ﻿namespace ProductService.Domain.Exceptions
 {
-    public class UnauthorizedException : Exception
+    public abstract class UnauthorizedException : Exception
     {
         protected UnauthorizedException(string message) : base(message) { }
     }

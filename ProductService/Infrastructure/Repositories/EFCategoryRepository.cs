@@ -12,5 +12,10 @@ namespace ProductService.Infrastructure.Repositories
                 .AsNoTracking()
                 .Select(c => c.ToCategory())
                 .ToArrayAsync();
+
+        public async Task<Category?> GetCategoryAsync(int id)
+        {
+            return (await dbContext.Categories.FindAsync(id))?.ToCategory();
+        }
     }
 }
