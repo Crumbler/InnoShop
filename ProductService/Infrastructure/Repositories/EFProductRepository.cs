@@ -1,4 +1,4 @@
-﻿using LinqKit.Core;
+﻿using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using ProductService.Domain.Entities;
 using ProductService.Domain.Repositories;
@@ -35,16 +35,51 @@ namespace ProductService.Infrastructure.Repositories
             return product?.ToProduct();
         }
 
-        public Task<Product[]> GetProductsAsync(Expression<Func<Product, bool>> filter, int page, int pageSize)
+        public Task<Product[]> GetProductsAsync(Expression<Func<Product, bool>> filter, SortBy sortType, int page, int pageSize)
         {
             int toSkip = (page - 1) * pageSize;
 
-            return dbContext.Products
+            var query = dbContext.Products
                 .AsNoTracking()
                 .AsExpandable()
                 .Include(p => p.Category)
-                .Select(p => p.ToProduct())
-                .Where(filter)
+                .Select(p => new Product()
+                {
+                    ProductId = p.ProductId,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    UserId = p.UserId,
+                    IsAvailable = p.IsAvailable,
+                    CreatedOn = p.CreatedOn,
+                    Category = new Category()
+                    {
+                        CategoryId = p.Category.CategoryId,
+                        Name = p.Category.Name,
+                    }
+                })
+                .Where(filter);
+
+            switch (sortType)
+            {
+                case SortBy.Name:
+                    query = query.OrderBy(p => p.Name);
+                    break;
+
+                case SortBy.NameDesc:
+                    query = query.OrderByDescending(p => p.Name);
+                    break;
+
+                case SortBy.Date:
+                    query = query.OrderBy(p => p.CreatedOn);
+                    break;
+
+                case SortBy.DateDesc:
+                    query = query.OrderByDescending(p => p.CreatedOn);
+                    break;
+            }
+
+            return query
                 .Skip(toSkip)
                 .Take(pageSize)
                 .ToArrayAsync();

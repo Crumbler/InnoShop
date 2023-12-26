@@ -4,7 +4,6 @@ using ProductService.Domain.Entities;
 using ProductService.Domain.Repositories;
 using ProductService.Domain.Exceptions;
 using ProductService.Application.Options;
-using ProductService.Infrastructure.Data.Entities;
 using LinqKit;
 
 namespace ProductService.Application.Services
@@ -64,14 +63,12 @@ namespace ProductService.Application.Services
 
             if (req.SearchName != null)
             {
-                predicate = predicate.And(p => p.Name.Contains(req.SearchName, 
-                    StringComparison.InvariantCultureIgnoreCase));
+                predicate = predicate.And(p => p.Name.Contains(req.SearchName));
             }
 
             if (req.SearchDesc != null)
             {
-                predicate = predicate.And(p => p.Description.Contains(req.SearchDesc,
-                    StringComparison.InvariantCultureIgnoreCase));
+                predicate = predicate.And(p => p.Description.Contains(req.SearchDesc));
             }
 
             switch ((req.MinPrice, req.MaxPrice))
@@ -106,7 +103,8 @@ namespace ProductService.Application.Services
                     predicate = predicate.And(p => p.CreatedOn >= minDate);
                     break;
                 case (DateTime minDate, DateTime maxDate):
-                    predicate = predicate.And(p => p.CreatedOn >= minDate && p.CreatedOn <= maxDate);
+                    predicate = predicate.And(p => 
+                        p.CreatedOn >= minDate && p.CreatedOn <= maxDate);
                     break;
             }
 
@@ -114,8 +112,9 @@ namespace ProductService.Application.Services
             {
                 predicate = predicate.And(p => p.Category.CategoryId == req.CategoryId);
             }
-
-            return productRepository.GetProductsAsync(predicate, req.Page ?? 1, browsingOptions.PageSize);
+            
+            return productRepository.GetProductsAsync(predicate, req.SortBy ?? SortBy.Name, 
+                req.Page ?? 1, browsingOptions.PageSize);
         }
 
         public async Task UpdateProductAsync(int userId, bool isAdmin, int productId,

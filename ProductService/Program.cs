@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using ProductService.Application.Interfaces;
 using ProductService.Application.Options;
+using ProductService.Domain.Entities;
 using ProductService.Domain.Repositories;
 using ProductService.Infrastructure.Data;
 using ProductService.Infrastructure.Repositories;
 using ProductService.Presentation.Handlers;
+using System.Text.Json.Serialization;
 
 namespace ProductService
 {
@@ -55,6 +57,11 @@ namespace ProductService
                 throw new Exception($"{nameof(BrowsingOptions)} not specified");
 
             services.AddSingleton(browsingOptions);
+
+            services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter<SortBy>());
+            });
         }
 
         private static void ConfigureDatabase(IServiceCollection services,

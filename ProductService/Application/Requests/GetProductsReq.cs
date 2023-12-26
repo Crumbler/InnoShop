@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ProductService.Domain.Entities;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProductService.Application.Requests
 {
@@ -24,6 +25,8 @@ namespace ProductService.Application.Requests
 
         [Range(1, int.MaxValue)]
         public int? Page { get; set; }
+
+        public SortBy? SortBy { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
