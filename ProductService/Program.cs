@@ -1,5 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using ProductService.Application.Interfaces;
+using ProductService.Domain.Repositories;
 using ProductService.Infrastructure.Data;
+using ProductService.Infrastructure.Repositories;
+using ProductService.Presentation.Handlers;
 
 namespace ProductService
 {
@@ -22,6 +26,8 @@ namespace ProductService
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseExceptionHandler();
+
             app.MapControllers();
 
             app.Run();
@@ -38,6 +44,11 @@ namespace ProductService
             }
 
             ConfigureDatabase(services, config, environment);
+
+            services.AddScoped<IProductService, Application.Services.ProductService>();
+
+            services.AddProblemDetails();
+            services.AddExceptionHandler<ExceptionToProblemDetailsHandler>();
         }
 
         private static void ConfigureDatabase(IServiceCollection services,
@@ -54,6 +65,12 @@ namespace ProductService
 
             var optionsBuilder = new DbContextOptionsBuilder<ProductServiceDbContext>();
             optionsBuilder.UseSqlServer(connectionString);
+
+            using var dbContext = new ProductServiceDbContext(optionsBuilder.Options);
+            
+            DatabaseHelper.SetupDatabaseAndSeedData(dbContext);
+
+            services.AddScoped<IProductRepository, EFProductRepository>();
         }
     }
 }
