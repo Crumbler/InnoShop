@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
 using System.Security.Claims;
 using UserService.Domain.Exceptions;
 
@@ -28,7 +27,7 @@ namespace UserService.Presentation.Attributes
 
             if (subjectId != affectedUserId && !isAdmin)
             {
-                context.Result = new ForbidResult();
+                throw new OtherUserAdminOnlyException();
             }
         }
     }

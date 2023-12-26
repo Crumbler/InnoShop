@@ -90,14 +90,14 @@ namespace UserService
 
                 services.AddSingleton(options);
             }
+
+            services.AddScoped<IUserRepository, EFUserRepository>();
         }
 
         private static void ConfigureAuthentication(IServiceCollection services,
             ConfigurationManager config)
         {
             services.AddSingleton<IJwtService, JwtService>();
-
-            services.AddScoped<IUserRepository, EFUserRepository>();
 
             services.AddSingleton<JwtSecurityTokenHandler>();
 

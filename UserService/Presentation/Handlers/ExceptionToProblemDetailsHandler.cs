@@ -12,7 +12,8 @@ namespace UserService.Presentation.Handlers
             int statusCode = exception switch
             {
                 BadRequestException => StatusCodes.Status400BadRequest,
-                UnauthorizedException => StatusCodes.Status401Unauthorized,
+                UnauthenticatedException => StatusCodes.Status401Unauthorized,
+                UnauthorizedException => StatusCodes.Status403Forbidden,
                 NotFoundException => StatusCodes.Status404NotFound,
                 ConflictException => StatusCodes.Status409Conflict,
                 _ => 0
@@ -31,6 +32,7 @@ namespace UserService.Presentation.Handlers
                 InvalidTokenException => "Invalid token",
                 UserAlreadyConfirmedException => "User already confirmed",
                 SamePasswordException => "Identical password",
+                OtherUserAdminOnlyException => "Unauthorized attempt to edit other user",
                 _ => "An error occured"
             };
 
