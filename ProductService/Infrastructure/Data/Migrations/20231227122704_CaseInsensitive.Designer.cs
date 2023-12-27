@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProductService.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ProductService.Infrastructure.Data;
 namespace ProductService.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ProductServiceDbContext))]
-    partial class ProductServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231227122704_CaseInsensitive")]
+    partial class CaseInsensitive
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
