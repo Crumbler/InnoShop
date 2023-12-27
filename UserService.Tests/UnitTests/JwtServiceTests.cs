@@ -26,7 +26,9 @@ namespace UserService.Tests.UnitTests
             RsaPrivateKey = null!,
             LoginDuration = TimeSpan.FromMinutes(10),
             ResetPasswordDuration = TimeSpan.FromHours(1),
-            EmailConfirmationDuration = TimeSpan.FromDays(3)
+            EmailConfirmationDuration = TimeSpan.FromDays(3),
+            IsAdminClaimType = "admin",
+            UserIdClaimType = "sub_id"
         };
         private static readonly TokenValidationParameters validationParameters = new()
         {

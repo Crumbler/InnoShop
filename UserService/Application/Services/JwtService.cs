@@ -25,8 +25,8 @@ namespace UserService.Application.Services
                 Issuer = jwtOptions.Issuer,
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new("sub_id", user.UserId.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer32),
-                    new("admin", user.Role.HasAdminPrivileges.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Boolean)
+                    new(jwtOptions.UserIdClaimType, user.UserId.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer32),
+                    new(jwtOptions.IsAdminClaimType, user.Role.HasAdminPrivileges.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Boolean)
                 }),
                 SigningCredentials = credentials
             };
