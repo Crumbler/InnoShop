@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using ProductService.Application.Interfaces;
 using ProductService.Application.Options;
 using ProductService.Domain.Entities;
@@ -6,6 +8,8 @@ using ProductService.Domain.Repositories;
 using ProductService.Infrastructure.Data;
 using ProductService.Infrastructure.Repositories;
 using ProductService.Presentation.Handlers;
+using ProductService.Presentation.Options;
+using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 
 namespace ProductService
@@ -48,6 +52,8 @@ namespace ProductService
 
             ConfigureDatabase(services, config, environment);
 
+            ConfigureAuthentication(services, config);
+
             services.AddScoped<IProductService, Application.Services.ProductService>();
 
             services.AddProblemDetails();
@@ -80,11 +86,45 @@ namespace ProductService
             optionsBuilder.UseSqlServer(connectionString);
 
             using var dbContext = new ProductServiceDbContext(optionsBuilder.Options);
-            
+
             DatabaseHelper.SetupDatabaseAndSeedData(dbContext);
 
             services.AddScoped<IProductRepository, EFProductRepository>();
             services.AddScoped<ICategoryRepository, EFCategoryRepository>();
+        }
+
+        private static void ConfigureAuthentication(IServiceCollection services,
+            ConfigurationManager config)
+        {
+            JwtOptions jwtOptions = config.GetRequiredSection(JwtOptions.Jwt).Get<JwtOptions>() ??
+                throw new Exception($"{nameof(JwtOptions)} not specified");
+
+            services.AddSingleton(jwtOptions);
+
+            var rsa = RSA.Create();
+            rsa.ImportFromPem(jwtOptions.RsaPublicKey);
+
+            var validationParameters = new TokenValidationParameters
+            {
+                IssuerSigningKey = new RsaSecurityKey(rsa),
+                ValidateIssuerSigningKey = true,
+                ValidateLifetime = true,
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidIssuer = jwtOptions.Issuer,
+                ValidAudience = jwtOptions.Audience
+            };
+
+            services.AddAuthentication(A =>
+            {
+                A.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                A.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(O =>
+            {
+                O.RequireHttpsMetadata = false;
+                O.SaveToken = false;
+                O.TokenValidationParameters = validationParameters;
+            });
         }
     }
 }
