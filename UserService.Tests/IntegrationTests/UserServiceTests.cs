@@ -321,6 +321,9 @@ namespace UserService.Tests.IntegrationTests
                 Assert.That(dto, Is.Not.Null);
                 Assert.That(dto?.Name, Is.EqualTo(req.Name));
                 Assert.That(dto?.Email, Is.EqualTo(req.Email));
+                Assert.That(res.Headers.Location, Is.Not.Null);
+                Assert.That(res.Headers.Location?.Segments[^1], 
+                    Is.EqualTo(dto?.UserId.ToString()));
             });
 
             string token = await emailService.GetToken();
