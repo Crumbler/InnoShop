@@ -5,7 +5,7 @@
     <DockerTargetOS>Linux</DockerTargetOS>
     <DockerPublishLocally>False</DockerPublishLocally>
     <ProjectGuid>846c5861-e996-4de2-b824-1163996ecfbd</ProjectGuid>
-    <DockerServiceName>userservice</DockerServiceName>
+    <DockerServiceName>productservice</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.override.yml">

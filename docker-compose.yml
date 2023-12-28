@@ -1,12 +1,19 @@
 version: '3.4'
 
 services:
-  userservice:
+  userservice: &basicservice
     image: ${DOCKER_REGISTRY-}userservice
     build:
       context: UserService
     depends_on:
-      sqlusers:
+      sqlshop:
         condition: service_healthy
-  sqlusers:
+
+  sqlshop:
     image: mcr.microsoft.com/mssql/server:2022-latest
+
+  productservice:
+    <<: *basicservice
+    image: ${DOCKER_REGISTRY-}productservice
+    build:
+      context: ProductService

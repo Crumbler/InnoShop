@@ -1,7 +1,7 @@
 version: '3.4'
 
 services:
-  userservice:
+  userservice: &basicservice
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=80
@@ -9,7 +9,8 @@ services:
       - "5000:80"
     extra_hosts:
       host.docker.internal: host-gateway
-  sqlusers:
+
+  sqlshop:
     environment:
       - SA_PASSWORD=Pass12345
       - ACCEPT_EULA=Y
@@ -22,3 +23,8 @@ services:
       timeout: 3s
       retries: 10
       start_period: 10s
+
+  productservice:
+    <<: *basicservice
+    ports:
+      - "5010:80"
