@@ -38,7 +38,9 @@ namespace ProductService.Presentation.Controllers
         [Authorize]
         [HttpPost]
         [ProducesResponseType<Product>(StatusCodes.Status201Created)]
+        [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<Product>> CreateProduct([FromBody] CreateProductReq req)
         {
             (int userId, _) = GetUserClaims();
@@ -51,6 +53,7 @@ namespace ProductService.Presentation.Controllers
         [Authorize]
         [HttpPut("{productId:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
         [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]

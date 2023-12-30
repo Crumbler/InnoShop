@@ -14,11 +14,11 @@ using System.Text.Json.Serialization;
 
 namespace ProductService
 {
-    public static class Program
+    public class Program
     {
-        public static void Main()
+        public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder();
+            var builder = WebApplication.CreateBuilder(args);
 
             ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
 
@@ -85,9 +85,10 @@ namespace ProductService
             var optionsBuilder = new DbContextOptionsBuilder<ProductServiceDbContext>();
             optionsBuilder.UseSqlServer(connectionString);
 
-            using var dbContext = new ProductServiceDbContext(optionsBuilder.Options);
-
-            DatabaseHelper.SetupDatabaseAndSeedData(dbContext);
+            using (var dbContext = new ProductServiceDbContext(optionsBuilder.Options))
+            {
+                DatabaseHelper.SetupDatabaseAndSeedData(dbContext);
+            }
 
             services.AddScoped<IProductRepository, EFProductRepository>();
             services.AddScoped<ICategoryRepository, EFCategoryRepository>();
@@ -107,7 +108,6 @@ namespace ProductService
             var validationParameters = new TokenValidationParameters
             {
                 IssuerSigningKey = new RsaSecurityKey(rsa),
-                ValidateIssuerSigningKey = true,
                 ValidateLifetime = true,
                 ValidateIssuer = true,
                 ValidateAudience = true,

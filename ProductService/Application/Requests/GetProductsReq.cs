@@ -19,7 +19,6 @@ namespace ProductService.Application.Requests
         public int? UserId { get; set; }
         public bool? Availability { get; set; }
         public DateTime? MinDate { get; set; }
-
         public DateTime? MaxDate { get; set; }
         public int? CategoryId { get; set; }
 

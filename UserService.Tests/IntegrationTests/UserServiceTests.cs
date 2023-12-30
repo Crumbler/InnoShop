@@ -13,7 +13,7 @@ namespace UserService.Tests.IntegrationTests
 {
     [TestFixture]
     [Parallelizable(ParallelScope.Self)]
-    public class UserServiceTests
+    public static class UserServiceTests
     {
         private static HttpClient client;
         private static WebApplicationFactory<UserService.Program> factory;
