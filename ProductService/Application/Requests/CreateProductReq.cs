@@ -1,5 +1,4 @@
-﻿using ProductService.Domain.Entities;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ProductService.Application.Requests
 {
@@ -11,7 +10,7 @@ namespace ProductService.Application.Requests
         [MaxLength(300)]
         public required string Description { get; set; }
 
-        [Range(1, 100000)]
+        [Range(1.0, 100000.0)]
         public decimal Price { get; set; }
         public int CategoryId { get; set; }
     }

@@ -11,10 +11,10 @@ namespace ProductService.Application.Requests
         [MaxLength(50)]
         public string? SearchDesc { get; set; }
 
-        [Range(1, 100000)]
+        [Range(1.0, 100000.0)]
         public decimal? MinPrice { get; set; }
 
-        [Range(1, 100000)]
+        [Range(1.0, 100000.0)]
         public decimal? MaxPrice { get; set; }
         public int? UserId { get; set; }
         public bool? Availability { get; set; }
