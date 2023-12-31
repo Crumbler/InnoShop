@@ -16,23 +16,23 @@ namespace UserService.Tests.UnitTests
     [TestFixture]
     public static class UserServiceTests
     {
-        private static Application.Services.UserService CreateUserService(
-            IUserRepository? userRepository = null,
-            IPasswordHelper? passwordHelper = null, IJwtService? jwtService = null,
+        private static Application.Services.UserService UserService(
+            Mock<IUserRepository>? userRepository = null,
+            Mock<IPasswordHelper>? passwordHelper = null, Mock<IJwtService>? jwtService = null,
             UserCreationOptions? options = null, IEmailService? emailService = null,
-            LinkGenerator? linkGenerator = null)
+            Mock<LinkGenerator>? linkGenerator = null)
         {
             return new Application.Services.UserService(
-                userRepository ?? Mock.Of<IUserRepository>(),
-                passwordHelper ?? Mock.Of<IPasswordHelper>(),
-                jwtService ?? Mock.Of<IJwtService>(),
+                userRepository?.Object ?? Mock.Of<IUserRepository>(),
+                passwordHelper?.Object ?? Mock.Of<IPasswordHelper>(),
+                jwtService?.Object ?? Mock.Of<IJwtService>(),
                 options!,
                 emailService ?? Mock.Of<IEmailService>(),
-                linkGenerator!
+                linkGenerator?.Object!
                 );
         }
 
-        private static User CreateUser(string email = "email", string name = "John Doe",
+        private static User User(string email = "email", string name = "John Doe",
             string? passwordHash = null, bool emailConfirmed = false,
             int id = 1) => new()
             {
@@ -50,12 +50,12 @@ namespace UserService.Tests.UnitTests
             // Arrange
             Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
 
-            var user = CreateUser(email: "email", emailConfirmed: true);
+            var user = User(email: "email", emailConfirmed: true);
 
             mockUserRepo.Setup(m => m.GetUserByEmailAsync(user.Email).Result)
                 .Returns(user);
 
-            var userService = CreateUserService(mockUserRepo.Object);
+            var userService = UserService(mockUserRepo);
 
             var req = new CreateUserReq()
             {
@@ -78,7 +78,7 @@ namespace UserService.Tests.UnitTests
             Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
             Mock<LinkGenerator> mockLinkGen = new();
 
-            var user = CreateUser(email: "email");
+            var user = User(email: "email");
 
             mockUserRepo.Setup(m => m.GetUserByEmailAsync(user.Email).Result)
                 .Returns(user);
@@ -87,8 +87,7 @@ namespace UserService.Tests.UnitTests
 
             mockLinkGen.SetReturnsDefault(string.Empty);
 
-            var userService = CreateUserService(mockUserRepo.Object,
-                linkGenerator: mockLinkGen.Object);
+            var userService = UserService(mockUserRepo, linkGenerator: mockLinkGen);
 
             var req = new CreateUserReq()
             {
@@ -118,7 +117,7 @@ namespace UserService.Tests.UnitTests
             Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
             Mock<LinkGenerator> mockLinkGen = new();
 
-            var user = CreateUser(email: "email", name: "Bob");
+            var user = User(email: "email", name: "Bob");
 
             mockUserRepo.Setup(m => m.GetUserByEmailAsync(user.Email).Result)
                 .Returns((User?)null);
@@ -127,9 +126,8 @@ namespace UserService.Tests.UnitTests
 
             mockLinkGen.SetReturnsDefault(string.Empty);
 
-            var userService = CreateUserService(mockUserRepo.Object,
-                options: new UserCreationOptions(null!),
-                linkGenerator: mockLinkGen.Object);
+            var userService = UserService(mockUserRepo,
+                options: new UserCreationOptions(null!), linkGenerator: mockLinkGen);
 
             var req = new CreateUserReq()
             {
@@ -163,11 +161,11 @@ namespace UserService.Tests.UnitTests
             mockUserRepo.Setup(m => m.GetUserAsync(userId).Result)
                 .Returns((User?)null);
 
-            var userService = CreateUserService(mockUserRepo.Object);
+            var userService = UserService(mockUserRepo);
 
             // Act
             Assert.ThrowsAsync(Is.TypeOf<UserNotFoundException>()
-                               .And.Message.Contains(userId.ToString(CultureInfo.InvariantCulture)),
+                .And.Message.Contains(userId.ToString(CultureInfo.InvariantCulture)),
                 () => userService.DeleteUserAsync(userId));
 
             // Assert
@@ -180,14 +178,14 @@ namespace UserService.Tests.UnitTests
             // Arrange
             Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
 
-            var user = CreateUser();
+            var user = User();
 
             mockUserRepo.Setup(m => m.GetUserAsync(user.UserId).Result)
                 .Returns(user);
             mockUserRepo.Setup(m => m.DeleteUserAsync(user.UserId))
                 .Returns(Task.CompletedTask);
 
-            var userService = CreateUserService(mockUserRepo.Object);
+            var userService = UserService(mockUserRepo);
 
             // Act
             userService.DeleteUserAsync(user.UserId).Wait();
@@ -208,11 +206,11 @@ namespace UserService.Tests.UnitTests
             mockUserRepo.Setup(m => m.GetUserAsync(userId).Result)
                 .Returns((User?)null);
 
-            var userService = CreateUserService(mockUserRepo.Object);
+            var userService = UserService(mockUserRepo);
 
             // Act
             Assert.ThrowsAsync(Is.TypeOf<UserNotFoundException>()
-                               .And.Message.Contains(userId.ToString(CultureInfo.InvariantCulture)),
+                .And.Message.Contains(userId.ToString(CultureInfo.InvariantCulture)),
                 () => userService.GetUserAsync(userId));
 
             // Assert
@@ -225,12 +223,12 @@ namespace UserService.Tests.UnitTests
             // Arrange
             Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
 
-            var user = CreateUser();
+            var user = User();
 
             mockUserRepo.Setup(m => m.GetUserAsync(user.UserId).Result)
                 .Returns(user);
 
-            var userService = CreateUserService(mockUserRepo.Object);
+            var userService = UserService(mockUserRepo);
 
             // Act
             UserDTO dto = userService.GetUserAsync(user.UserId).Result;
@@ -259,11 +257,11 @@ namespace UserService.Tests.UnitTests
             mockUserRepo.Setup(m => m.GetUserAsync(id).Result)
                 .Returns((User?)null);
 
-            var userService = CreateUserService(mockUserRepo.Object);
+            var userService = UserService(mockUserRepo);
 
             // Act
             Assert.ThrowsAsync(Is.TypeOf<UserNotFoundException>()
-                               .And.Message.Contains(id.ToString(CultureInfo.InvariantCulture)),
+                .And.Message.Contains(id.ToString(CultureInfo.InvariantCulture)),
                 () => userService.UpdateUserAsync(id, null!));
 
             // Assert
@@ -276,7 +274,7 @@ namespace UserService.Tests.UnitTests
             // Arrange
             Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
 
-            var user = CreateUser(email: "oldEmail");
+            var user = User(email: "oldEmail");
             string newEmail = "email";
 
             mockUserRepo.Setup(m => m.GetUserAsync(user.UserId).Result)
@@ -284,7 +282,7 @@ namespace UserService.Tests.UnitTests
             mockUserRepo.Setup(m => m.CheckEmailAvailableAsync(newEmail).Result)
                 .Returns(false);
 
-            var userService = CreateUserService(mockUserRepo.Object);
+            var userService = UserService(mockUserRepo);
 
             var req = new UpdateUserReq()
             {
@@ -293,7 +291,7 @@ namespace UserService.Tests.UnitTests
 
             // Act
             Assert.ThrowsAsync(Is.TypeOf<EmailInUseException>()
-                               .And.Message.Contains(req.Email),
+                .And.Message.Contains(req.Email),
                 () => userService.UpdateUserAsync(user.UserId, req));
 
             // Assert
@@ -307,7 +305,7 @@ namespace UserService.Tests.UnitTests
             // Arrange
             Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
 
-            var user = CreateUser(email: "oldEmail");
+            var user = User(email: "oldEmail");
             string newEmail = "email";
 
             mockUserRepo.Setup(m => m.GetUserAsync(user.UserId).Result)
@@ -317,7 +315,7 @@ namespace UserService.Tests.UnitTests
             mockUserRepo.Setup(m => m.UpdateUserAsync(user))
                 .Returns(Task.CompletedTask);
 
-            var userService = CreateUserService(mockUserRepo.Object);
+            var userService = UserService(mockUserRepo);
 
             var req = new UpdateUserReq()
             {
@@ -339,14 +337,14 @@ namespace UserService.Tests.UnitTests
             // Arrange
             Mock<IUserRepository> mockUserRepo = new();
 
-            var user = CreateUser();
+            var user = User();
 
             mockUserRepo.Setup(m => m.GetUserAsync(user.UserId).Result)
                 .Returns(user);
             mockUserRepo.Setup(m => m.UpdateUserAsync(user))
                 .Returns(Task.CompletedTask);
 
-            var userService = CreateUserService(mockUserRepo.Object);
+            var userService = UserService(mockUserRepo);
 
             var req = new UpdateUserReq()
             {
@@ -358,8 +356,8 @@ namespace UserService.Tests.UnitTests
 
             // Assert
             mockUserRepo.Verify(m => m.GetUserAsync(user.UserId), Times.Once());
-            mockUserRepo.Verify(m => m.CheckEmailAvailableAsync(It.IsAny<string>()), Times.Never());
             mockUserRepo.Verify(m => m.UpdateUserAsync(user), Times.Once());
+            mockUserRepo.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -377,7 +375,7 @@ namespace UserService.Tests.UnitTests
             mockUserRepo.Setup(m => m.GetUserByEmailAsync(req.Email).Result)
                 .Returns((User?)null);
 
-            var userService = CreateUserService(mockUserRepo.Object);
+            var userService = UserService(mockUserRepo);
 
             // Act
             Assert.ThrowsAsync<InvalidCredentialsException>(() => userService.LoginAsync(req));
@@ -398,12 +396,12 @@ namespace UserService.Tests.UnitTests
                 Password = "12345"
             };
 
-            var user = CreateUser(email: req.Email);
+            var user = User(email: req.Email);
 
             mockUserRepo.Setup(m => m.GetUserByEmailAsync(req.Email).Result)
                 .Returns(user);
 
-            var userService = CreateUserService(mockUserRepo.Object);
+            var userService = UserService(mockUserRepo);
 
             // Act
             Assert.ThrowsAsync<InvalidCredentialsException>(() => userService.LoginAsync(req));
@@ -426,7 +424,7 @@ namespace UserService.Tests.UnitTests
             };
 
             string actualPassword = "123";
-            var user = CreateUser(email: req.Email, passwordHash: actualPassword,
+            var user = User(email: req.Email, passwordHash: actualPassword,
                 emailConfirmed: true);
 
             mockUserRepo.Setup(m => m.GetUserByEmailAsync(req.Email).Result)
@@ -435,7 +433,7 @@ namespace UserService.Tests.UnitTests
             mockPswHelper.Setup(m => m.IsValid(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns((string a, string b) => a.Equals(b, StringComparison.Ordinal));
 
-            var userService = CreateUserService(mockUserRepo.Object, mockPswHelper.Object);
+            var userService = UserService(mockUserRepo, mockPswHelper);
 
             // Act
             Assert.ThrowsAsync<InvalidCredentialsException>(() => userService.LoginAsync(req));
@@ -458,7 +456,7 @@ namespace UserService.Tests.UnitTests
                 Password = "12345"
             };
 
-            var user = CreateUser(email: req.Email, passwordHash: req.Password,
+            var user = User(email: req.Email, passwordHash: req.Password,
                 emailConfirmed: true);
 
             mockUserRepo.Setup(m => m.GetUserByEmailAsync(req.Email).Result)
@@ -467,7 +465,7 @@ namespace UserService.Tests.UnitTests
             mockPswHelper.Setup(m => m.IsValid(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns((string a, string b) => a.Equals(b, StringComparison.Ordinal));
 
-            var userService = CreateUserService(mockUserRepo.Object, mockPswHelper.Object);
+            var userService = UserService(mockUserRepo, mockPswHelper);
 
             // Act
             LoginDTO dto = userService.LoginAsync(req).Result;
@@ -492,7 +490,7 @@ namespace UserService.Tests.UnitTests
                     return false;
                 });
 
-            var userService = CreateUserService(jwtService: mockJwtService.Object);
+            var userService = UserService(jwtService: mockJwtService);
 
             // Act
             Assert.ThrowsAsync<InvalidTokenException>(() =>
@@ -521,12 +519,12 @@ namespace UserService.Tests.UnitTests
             mockJwtService.Setup(m => m.ValidateToken(It.IsAny<string>(), out token))
                 .Returns(true);
 
-            var userService = CreateUserService(mockUserRepo.Object,
-                jwtService: mockJwtService.Object);
+            var userService = UserService(mockUserRepo,
+                jwtService: mockJwtService);
 
             // Act
             Assert.ThrowsAsync(Is.TypeOf<UserNotFoundException>()
-                               .And.Message.Contains(userId.ToString(CultureInfo.InvariantCulture)),
+                .And.Message.Contains(userId.ToString(CultureInfo.InvariantCulture)),
                 () => userService.ConfirmUserAsync(null!));
 
             // Assert
@@ -542,7 +540,7 @@ namespace UserService.Tests.UnitTests
             Mock<IJwtService> mockJwtService = new(MockBehavior.Strict);
 
             const int userId = 1;
-            var user = CreateUser(id: userId, emailConfirmed: true);
+            var user = User(id: userId, emailConfirmed: true);
 
             mockUserRepo.Setup(m => m.GetUserAsync(It.IsAny<int>()).Result)
                 .Returns(user);
@@ -552,8 +550,8 @@ namespace UserService.Tests.UnitTests
             mockJwtService.Setup(m => m.ValidateToken(It.IsAny<string>(), out token))
                 .Returns(true);
 
-            var userService = CreateUserService(mockUserRepo.Object,
-                jwtService: mockJwtService.Object);
+            var userService = UserService(mockUserRepo,
+                jwtService: mockJwtService);
 
             // Act
             Assert.ThrowsAsync<UserAlreadyConfirmedException>(() => 
@@ -572,7 +570,7 @@ namespace UserService.Tests.UnitTests
             Mock<IJwtService> mockJwtService = new(MockBehavior.Strict);
 
             const int userId = 1;
-            var user = CreateUser(id: userId);
+            var user = User(id: userId);
 
             mockUserRepo.Setup(m => m.GetUserAsync(It.IsAny<int>()).Result)
                 .Returns(user);
@@ -584,8 +582,8 @@ namespace UserService.Tests.UnitTests
             mockJwtService.Setup(m => m.ValidateToken(It.IsAny<string>(), out token))
                 .Returns(true);
 
-            var userService = CreateUserService(mockUserRepo.Object,
-                jwtService: mockJwtService.Object);
+            var userService = UserService(mockUserRepo,
+                jwtService: mockJwtService);
 
             // Act
             userService.ConfirmUserAsync(null!).Wait();
@@ -610,7 +608,7 @@ namespace UserService.Tests.UnitTests
                 Email = "email" 
             };
 
-            var userService = CreateUserService(mockUserRepo.Object);
+            var userService = UserService(mockUserRepo);
 
             // Act
             userService.ForgotPasswordAsync(req).Wait();
@@ -625,7 +623,7 @@ namespace UserService.Tests.UnitTests
             // Arrange
             Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
 
-            var user = CreateUser(email: "email");
+            var user = User(email: "email");
 
             mockUserRepo.Setup(m => m.GetUserByEmailAsync(user.Email).Result)
                 .Returns(user);
@@ -635,7 +633,7 @@ namespace UserService.Tests.UnitTests
                 Email = user.Email
             };
 
-            var userService = CreateUserService(mockUserRepo.Object);
+            var userService = UserService(mockUserRepo);
 
             // Act
             userService.ForgotPasswordAsync(req).Wait();
@@ -651,7 +649,7 @@ namespace UserService.Tests.UnitTests
             Mock<IUserRepository> mockUserRepo = new(MockBehavior.Strict);
             Mock<LinkGenerator> mockLinkGen = new();
 
-            var user = CreateUser(email: "email", emailConfirmed: true);
+            var user = User(email: "email", emailConfirmed: true);
 
             mockUserRepo.Setup(m => m.GetUserByEmailAsync(user.Email).Result)
                 .Returns(user);
@@ -663,8 +661,8 @@ namespace UserService.Tests.UnitTests
                 Email = user.Email
             };
 
-            var userService = CreateUserService(mockUserRepo.Object, 
-                linkGenerator: mockLinkGen.Object);
+            var userService = UserService(mockUserRepo, 
+                linkGenerator: mockLinkGen);
 
             // Act
             userService.ForgotPasswordAsync(req).Wait();
@@ -683,7 +681,7 @@ namespace UserService.Tests.UnitTests
             mockJwtService.Setup(m => m.ValidateToken(It.IsAny<string>(), out token))
                 .Returns(false);
 
-            var userService = CreateUserService(jwtService: mockJwtService.Object);
+            var userService = UserService(jwtService: mockJwtService);
 
             // Act
             Assert.ThrowsAsync<InvalidTokenException>(() => 
@@ -710,12 +708,12 @@ namespace UserService.Tests.UnitTests
             mockJwtService.Setup(m => m.ValidateToken(It.IsAny<string>(), out token))
                 .Returns(true);
 
-            var userService = CreateUserService(mockUserRepo.Object,
-                jwtService: mockJwtService.Object);
+            var userService = UserService(mockUserRepo,
+                jwtService: mockJwtService);
 
             // Act
             Assert.ThrowsAsync(Is.TypeOf<UserNotFoundException>()
-                               .And.Message.Contains(userId.ToString(CultureInfo.InvariantCulture)),
+                .And.Message.Contains(userId.ToString(CultureInfo.InvariantCulture)),
                 () => userService.ResetPasswordAsync(null!, null!));
 
             // Assert
@@ -731,7 +729,7 @@ namespace UserService.Tests.UnitTests
             Mock<IJwtService> mockJwtService = new(MockBehavior.Strict);
             Mock<IPasswordHelper> mockPswHelper = new(MockBehavior.Strict);
 
-            var user = CreateUser(passwordHash: "hash");
+            var user = User(passwordHash: "hash");
 
             mockUserRepo.Setup(m => m.GetUserAsync(user.UserId).Result)
                 .Returns(user);
@@ -744,9 +742,8 @@ namespace UserService.Tests.UnitTests
             mockPswHelper.Setup(m => m.IsValid(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(true);
 
-            var userService = CreateUserService(mockUserRepo.Object,
-                mockPswHelper.Object,
-                jwtService: mockJwtService.Object);
+            var userService = UserService(mockUserRepo,
+                mockPswHelper, jwtService: mockJwtService);
 
             ResetPasswordReq req = new()
             {
@@ -772,7 +769,7 @@ namespace UserService.Tests.UnitTests
             Mock<IPasswordHelper> mockPswHelper = new(MockBehavior.Strict);
 
             const string oldHash = "hash";
-            var user = CreateUser(passwordHash: oldHash);
+            var user = User(passwordHash: oldHash);
 
             mockUserRepo.Setup(m => m.GetUserAsync(user.UserId).Result)
                 .Returns(user);
@@ -791,9 +788,8 @@ namespace UserService.Tests.UnitTests
             mockPswHelper.Setup(m => m.HashPassword(It.IsAny<string>()))
                 .Returns(newHash);
 
-            var userService = CreateUserService(mockUserRepo.Object,
-                mockPswHelper.Object,
-                jwtService: mockJwtService.Object);
+            var userService = UserService(mockUserRepo, mockPswHelper,
+                jwtService: mockJwtService);
 
             ResetPasswordReq req = new()
             {

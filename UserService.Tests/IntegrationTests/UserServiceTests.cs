@@ -45,8 +45,10 @@ namespace UserService.Tests.IntegrationTests
         {
             // Arrange
             const string path = "users/1";
-            Task<HttpResponseMessage>[] tasks = [client.PutAsync(path, null),
-                client.DeleteAsync(path)];
+            Task<HttpResponseMessage>[] tasks = [
+                client.PutAsync(path, null),
+                client.DeleteAsync(path)
+            ];
 
             // Act
             var results = await Task.WhenAll(tasks);
@@ -62,22 +64,22 @@ namespace UserService.Tests.IntegrationTests
             // Arrange
             var loginDto = await LoginAsAdmin();
 
-            client.DefaultRequestHeaders.Authorization = 
+            client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", loginDto.Token);
 
             const string path = "users/-50";
 
             Task<HttpResponseMessage>[] tasks =
-                [
-                    client.PutAsJsonAsync(path, new UpdateUserReq()),
-                    client.DeleteAsync(path)
-                ];
+            [
+                client.PutAsJsonAsync(path, new UpdateUserReq()),
+                client.DeleteAsync(path)
+            ];
 
             // Act
             var results = await Task.WhenAll(tasks);
 
             // Assert
-            Assert.That(results.Select(s => s.StatusCode), 
+            Assert.That(results.Select(s => s.StatusCode),
                 Is.All.EqualTo(HttpStatusCode.NotFound));
 
             client.DefaultRequestHeaders.Authorization = null;
@@ -90,7 +92,7 @@ namespace UserService.Tests.IntegrationTests
 
             var loginDto = await LoginAsUser(user.Email, password);
 
-            client.DefaultRequestHeaders.Authorization = 
+            client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", loginDto.Token);
 
             var req = new UpdateUserReq()
@@ -98,25 +100,27 @@ namespace UserService.Tests.IntegrationTests
                 Email = "johndoe@mail.com"
             };
 
+            const string basePath = "users";
+
             // Email taken
-            var res = await client.PutAsJsonAsync($"users/{loginDto.UserId}", req);
+            var res = await client.PutAsJsonAsync($"{basePath}/{loginDto.UserId}", req);
             Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
 
             // Can't update other users if not admin
-            res = await client.PutAsJsonAsync($"users/1", req);
+            res = await client.PutAsJsonAsync($"{basePath}/1", req);
             Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
 
             req.Email = "newemail@mail.com";
             req.Name = "New Name";
 
-            res = await client.PutAsJsonAsync($"users/{loginDto.UserId}", req);
+            res = await client.PutAsJsonAsync($"{basePath}/{loginDto.UserId}", req);
             Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
 
             // Can't delete other users if not admin
-            res = await client.DeleteAsync($"users/-5");
+            res = await client.DeleteAsync($"{basePath}/-5");
             Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
 
-            res = await client.DeleteAsync($"users/{loginDto.UserId}");
+            res = await client.DeleteAsync($"{basePath}/{loginDto.UserId}");
             Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
 
             client.DefaultRequestHeaders.Authorization = null;
@@ -151,13 +155,15 @@ namespace UserService.Tests.IntegrationTests
         {
             // Act
             var res = await client.GetAsync("users/1");
-            UserDTO? dto = await res.Content.ReadFromJsonAsync<UserDTO>();
 
             // Assert
+            Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+            UserDTO? dto = await res.Content.ReadFromJsonAsync<UserDTO>();
+            Assert.That(dto, Is.Not.Null);
+
             Assert.Multiple(() =>
             {
-                Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-                Assert.That(dto, Is.Not.Null);
                 Assert.That(dto?.UserId, Is.GreaterThan(0));
                 Assert.That(dto?.Name, Is.Not.Empty);
                 Assert.That(dto?.Email, Is.Not.Empty);
@@ -182,7 +188,8 @@ namespace UserService.Tests.IntegrationTests
         public static async Task Login_BadRequest()
         {
             // Arrange
-            LoginReq?[] requests = [null,
+            LoginReq?[] requests = [
+                null,
                 new()
                 {
                     Email = "notEmail",
@@ -197,7 +204,8 @@ namespace UserService.Tests.IntegrationTests
                 {
                     Email = "notEmail",
                     Password = "Pass12345"
-                }];
+                }
+            ];
 
             // Act
             var tasks = requests.Select(req => client.PostAsJsonAsync("login", req));
@@ -237,9 +245,9 @@ namespace UserService.Tests.IntegrationTests
             LoginDTO? dto = await res.Content.ReadFromJsonAsync<LoginDTO>();
 
             // Assert
+            Assert.That(dto, Is.Not.Null);
             Assert.Multiple(() =>
             {
-                Assert.That(dto, Is.Not.Null);
                 Assert.That(dto?.UserId, Is.GreaterThan(0));
                 Assert.That(dto?.Token, Is.Not.Empty);
             });
@@ -249,7 +257,8 @@ namespace UserService.Tests.IntegrationTests
         public static async Task CreateUser_BadRequest()
         {
             // Arrange
-            CreateUserReq?[] requests = [null,
+            CreateUserReq?[] requests = [
+                null,
                 new()
                 {
                     Name = "a",
@@ -273,7 +282,8 @@ namespace UserService.Tests.IntegrationTests
                     Name = "SomeName",
                     Email = "notEmail",
                     Password = "Pass12345"
-                }];
+                }
+            ];
 
             // Act
             var tasks = requests.Select(req => client.PostAsJsonAsync("users", req));
@@ -313,36 +323,50 @@ namespace UserService.Tests.IntegrationTests
             };
 
             var res = await client.PostAsJsonAsync("users", req);
-            UserDTO? dto = await res.Content.ReadFromJsonAsync<UserDTO>();
 
-            Assert.Multiple(() =>
+            Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+
+            UserDTO? dto = null;
+
+            try
             {
-                Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+                dto = await res.Content.ReadFromJsonAsync<UserDTO>();
+
                 Assert.That(dto, Is.Not.Null);
-                Assert.That(dto?.Name, Is.EqualTo(req.Name));
-                Assert.That(dto?.Email, Is.EqualTo(req.Email));
-                Assert.That(res.Headers.Location, Is.Not.Null);
-                Assert.That(res.Headers.Location?.Segments[^1], 
-                    Is.EqualTo(dto?.UserId.ToString()));
-            });
 
-            string token = await emailService.GetToken();
+                Assert.Multiple(() =>
+                {
+                    Assert.That(dto?.Name, Is.EqualTo(req.Name));
+                    Assert.That(dto?.Email, Is.EqualTo(req.Email));
+                    Assert.That(res.Headers.Location, Is.Not.Null);
+                    Assert.That(res.Headers.Location?.Segments[^1],
+                        Is.EqualTo(dto?.UserId.ToString()));
+                });
 
-            res = await client.PostAsync($"confirm/{token}", null);
-            Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+                string token = await emailService.GetToken();
 
-            res = await client.PostAsync($"confirm/{token}", null);
-            Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
+                res = await client.PostAsync($"confirm/{token}", null);
+                Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
 
-            // Cleanup
-            await DeleteUser(dto!.UserId);
+                res = await client.PostAsync($"confirm/{token}", null);
+                Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
+            }
+            finally
+            {
+                // Cleanup
+                if (dto != null)
+                {
+                    await DeleteUser(dto.UserId);
+                }
+            }
         }
 
         [Test]
         public static async Task ForgotPassword_BadRequest()
         {
             // Arrange
-            ForgotPasswordReq?[] requests = [null,
+            ForgotPasswordReq?[] requests = [
+                null,
                 new()
                 {
                     Email = "notEmail"
@@ -350,7 +374,8 @@ namespace UserService.Tests.IntegrationTests
                 new()
                 {
                     Email = "a"
-                }];
+                }
+            ];
 
             // Act
             var tasks = requests.Select(req => client.PostAsJsonAsync("forgotpassword", req));
@@ -367,35 +392,41 @@ namespace UserService.Tests.IntegrationTests
             UserDTO user = (await CreateUser()).dto;
 
             var forgotPasswordReq = new ForgotPasswordReq()
-            { 
-                Email = user.Email 
-            };
-
-            var res = await client.PostAsJsonAsync("forgotpassword", forgotPasswordReq);
-            Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-
-            string token = await emailService.GetToken();
-
-            var resetPasswordReq = new ResetPasswordReq()
             {
-                Password = "cdf12345"
+                Email = user.Email
             };
 
-            res = await client.PostAsJsonAsync($"resetpassword/{token}", resetPasswordReq);
-            Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+            try
+            {
+                var res = await client.PostAsJsonAsync("forgotpassword", forgotPasswordReq);
+                Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-            res = await client.PostAsJsonAsync($"resetpassword/{token}", resetPasswordReq);
-            Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
+                string token = await emailService.GetToken();
 
-            // Cleanup
-            await DeleteUser(user.UserId);
+                var resetPasswordReq = new ResetPasswordReq()
+                {
+                    Password = "cdf12345"
+                };
+
+                res = await client.PostAsJsonAsync($"resetpassword/{token}", resetPasswordReq);
+                Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+
+                res = await client.PostAsJsonAsync($"resetpassword/{token}", resetPasswordReq);
+                Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
+            }
+            finally
+            {
+                // Cleanup
+                await DeleteUser(user.UserId);
+            }
         }
 
         [Test]
         public static async Task ResetPassword_BadRequest()
         {
             // Arrange
-            ResetPasswordReq?[] requests = [null,
+            ResetPasswordReq?[] requests = [
+                null,
                 new()
                 {
                     Password = "123456789"
@@ -407,10 +438,12 @@ namespace UserService.Tests.IntegrationTests
                 new()
                 {
                     Password = "a1"
-                }];
+                }
+            ];
 
             // Act
-            var tasks = requests.Select(req => client.PostAsJsonAsync("resetpassword/token", req));
+            var tasks = requests.Select(req => 
+                client.PostAsJsonAsync("resetpassword/token", req));
             var results = await Task.WhenAll(tasks);
 
             // Assert
@@ -423,8 +456,10 @@ namespace UserService.Tests.IntegrationTests
         {
             // Arrange
             Task<HttpResponseMessage>[] tasks =
-                [client.PostAsJsonAsync<object?>("resetpassword/token", null),
-                    client.PostAsJsonAsync<object?>("confirm/token", null)];
+            [
+                client.PostAsJsonAsync<object?>("resetpassword/token", null),
+                client.PostAsJsonAsync<object?>("confirm/token", null)
+            ];
 
             // Act
             var results = await Task.WhenAll(tasks);
@@ -440,11 +475,13 @@ namespace UserService.Tests.IntegrationTests
             // Arrange
             string expiredToken = TestHelper.GenerateExpiredJwtToken(factory.Services);
             Task<HttpResponseMessage>[] tasks =
-                [client.PostAsJsonAsync<object?>($"resetpassword/{expiredToken}", null),
-                    client.PostAsJsonAsync($"confirm/{expiredToken}", new ResetPasswordReq()
-                    {
-                        Password = "abc12345"
-                    })];
+            [
+                client.PostAsJsonAsync<object?>($"resetpassword/{expiredToken}", null),
+                client.PostAsJsonAsync($"confirm/{expiredToken}", new ResetPasswordReq()
+                {
+                    Password = "abc12345"
+                })
+            ];
 
             // Act
             var results = await Task.WhenAll(tasks);
@@ -462,7 +499,7 @@ namespace UserService.Tests.IntegrationTests
             var dto = await LoginAsAdmin();
 
             var request = new HttpRequestMessage(HttpMethod.Delete, $"users/{id}");
-            request.Headers.Authorization = 
+            request.Headers.Authorization =
                 new AuthenticationHeaderValue("Bearer", dto.Token);
 
             await client.SendAsync(request);
